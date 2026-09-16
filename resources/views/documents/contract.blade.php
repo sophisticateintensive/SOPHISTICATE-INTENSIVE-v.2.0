@@ -2,94 +2,131 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Software Upgrade & Maintenance Agreement</title>
+    <title>Sophisticate Intensive Portal Version 2.0 - Upgrade Agreement & Invoice</title>
     <style>
         @page {
-            margin: 25mm 20mm 25mm 20mm;
+            margin: 16mm 16mm 16mm 16mm;
         }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 10pt;
+            line-height: 1.45;
             color: #1e293b;
             margin: 0;
             padding: 0;
         }
         .header {
-            border-bottom: 2px solid #2563eb;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
+            border-bottom: 2.5px solid #2563eb;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
         }
-        .header h1 {
-            font-size: 18pt;
-            font-weight: bold;
+        .header-title {
+            font-size: 16pt;
+            font-weight: 800;
             color: #1e3a8a;
             margin: 0 0 4px 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .header .subtitle {
-            font-size: 11pt;
-            color: #64748b;
+        .header-sub {
+            font-size: 10pt;
+            color: #475569;
+            font-weight: 600;
             margin: 0;
+        }
+        .badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 8pt;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            text-transform: uppercase;
         }
         .meta-box {
             background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
             border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
         }
         .meta-table {
             width: 100%;
             border-collapse: collapse;
         }
         .meta-table td {
-            padding: 3px 0;
-            font-size: 10pt;
+            padding: 2px 0;
+            font-size: 9.5pt;
             vertical-align: top;
         }
         .meta-table .label {
-            width: 25%;
+            width: 28%;
             font-weight: bold;
             color: #475569;
         }
         .meta-table .val {
-            width: 75%;
+            width: 72%;
             color: #0f172a;
         }
         h2 {
-            font-size: 12pt;
+            font-size: 11pt;
             color: #1e3a8a;
             border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 4px;
-            margin-top: 18px;
-            margin-bottom: 8px;
+            padding-bottom: 3px;
+            margin-top: 14px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
         p {
-            margin: 0 0 8px 0;
-            font-size: 10pt;
+            margin: 0 0 6px 0;
+            font-size: 9.5pt;
             text-align: justify;
         }
         ul {
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
             padding-left: 20px;
-            font-size: 10pt;
+            font-size: 9.5pt;
         }
         li {
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+        }
+        .feature-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 12px 0;
+        }
+        .feature-grid th, .feature-grid td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 10px;
+            font-size: 8.5pt;
+            vertical-align: top;
+        }
+        .feature-grid th {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8pt;
+        }
+        .feature-grid tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .tag-v2 {
+            color: #059669;
+            font-weight: bold;
         }
         table.pricing {
             width: 100%;
             border-collapse: collapse;
-            margin: 12px 0 16px 0;
+            margin: 10px 0 14px 0;
         }
         table.pricing th, table.pricing td {
             border: 1px solid #cbd5e1;
             padding: 8px 12px;
-            font-size: 10pt;
+            font-size: 9.5pt;
             text-align: left;
         }
         table.pricing th {
@@ -97,8 +134,7 @@
             color: #ffffff;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 9pt;
-            letter-spacing: 0.5px;
+            font-size: 8.5pt;
         }
         table.pricing tr:nth-child(even) {
             background-color: #f8fafc;
@@ -107,136 +143,174 @@
             font-weight: bold;
             background-color: #eff6ff !important;
             color: #1e3a8a;
+            font-size: 10pt;
+        }
+        .highlight-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 9.5pt;
         }
         .signatures {
-            margin-top: 30px;
+            margin-top: 18px;
             width: 100%;
             border-collapse: collapse;
         }
         .signatures td {
             width: 50%;
-            padding: 10px 20px 0 0;
+            padding: 5px 15px 0 0;
             vertical-align: top;
-            font-size: 10pt;
+            font-size: 9pt;
         }
         .sig-line {
             border-bottom: 1px solid #0f172a;
-            height: 45px;
-            margin-bottom: 6px;
+            height: 35px;
+            margin-bottom: 4px;
         }
         .page-break {
             page-break-before: always;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 8pt;
-            color: #94a3b8;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 6px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Software Upgrade & Maintenance Agreement</h1>
-        <p class="subtitle">System Version 2.0 Deployment & Ongoing Service Level Agreement (SLA)</p>
+        <div class="header-title">Sophisticate Intensive Classes</div>
+        <div class="header-sub">System Handover, Feature Breakdown & Upgrade Invoice (Version 2.0)</div>
+        <span class="badge">Major System Release · Production Ready</span>
     </div>
 
     <div class="meta-box">
         <table class="meta-table">
             <tr>
-                <td class="label">Date of Agreement:</td>
-                <td class="val">{{ date('F d, Y') }}</td>
+                <td class="label">Date:</td>
+                <td class="val">{{ date }}</td>
             </tr>
             <tr>
-                <td class="label">Client / Institution:</td>
-                <td class="val">Sophisticate Intensive Classes / School Administration</td>
-            </tr>
-            <tr>
-                <td class="label">Service Provider:</td>
-                <td class="val">Lead Software Engineer & Systems Architect</td>
+                <td class="label">Client Institution:</td>
+                <td class="val">Sophisticate Intensive Classes — School Administration</td>
             </tr>
             <tr>
                 <td class="label">Project / System:</td>
                 <td class="val">School Management & Student Portal System (Upgrade to Version 2.0)</td>
             </tr>
+            <tr>
+                <td class="label">Status:</td>
+                <td class="val"><strong>Completed, Fully Tested & Deployed</strong></td>
+            </tr>
         </table>
     </div>
 
-    <h2>1. Purpose of Agreement</h2>
+    <h2>1. Executive Summary & Upgrade Overview</h2>
     <p>
-        This Agreement governs the provision, deployment, and ongoing technical maintenance of the <strong>Version 2.0 System Upgrade</strong> for the Client's School Management & Student Portal System. This agreement replaces all prior informal understandings regarding Version 1.0 maintenance.
+        This document serves as the formal handover breakdown and billing agreement for the delivery of the <strong>Sophisticate Intensive Classes Portal Version 2.0</strong>. Version 2.0 is a major system overhaul specifically engineered to automate class timetabling, protect tuition revenue through fee-gated resources, introduce online examinations, and secure all school records with off-site cloud backups.
     </p>
 
-    <h2>2. Scope of Version 2.0 Upgrade Deliverables</h2>
-    <p>The Service Provider has engineered and delivered the following major system capabilities:</p>
-    <ul>
-        <li><strong>Fee-Gated Resource Protection Engine:</strong> Strict server-side access control restricting viewing and downloading of uploaded academic resources based on student fee settlement thresholds (under 50% vs. 50%+ paid).</li>
-        <li><strong>In-Portal Secure Document Reader:</strong> Integrated canvas reader preventing direct external link leakage and browser toolbar downloads for restricted accounts.</li>
-        <li><strong>Dynamic Weekly Timetable Management:</strong> Transitioned schedule engine from static semester timetables to date-specific weekly schedules with a 1-click week duplication tool.</li>
-        <li><strong>System Security & Hardening Overhaul:</strong> Implementation of HTTP security headers (Anti-Clickjacking, MIME-Sniffing prevention), upload filetype whitelisting, and brute-force login throttling.</li>
-        <li><strong>Database Migration & Data Preservation:</strong> Seamless migration of all existing student, enrollment, and grade records to the Version 2.0 schema without data loss.</li>
-    </ul>
+    <h2>2. Complete Breakdown of What Was Built & Delivered</h2>
 
-    <h2>3. Financial Terms & Payment Schedule</h2>
-    <p>The Client agrees to pay the Service Provider according to the following schedule:</p>
-
-    <table class="pricing">
+    <table class="feature-grid">
         <thead>
             <tr>
-                <th>Service Item</th>
-                <th>Payment Type</th>
-                <th>Amount (MWK)</th>
+                <th style="width: 25%;">Feature Module</th>
+                <th style="width: 42%;">What Was Built & Delivered</th>
+                <th style="width: 33%;">Business Value to School</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td><strong>Version 2.0 Upgrade, Migration & Deployment</strong><br><small style="color:#64748b;">Full codebase upgrade, security hardening & server installation</small></td>
-                <td>One-Off Payment (Upon Delivery)</td>
-                <td><strong>MK 350,000</strong></td>
+                <td><strong>1. Supabase Cloud Backup & Storage</strong></td>
+                <td>Automated daily off-site cloud sync of the complete database (students, fees, grades, timetables) plus dedicated cloud storage for all study files.</td>
+                <td><span class="tag-v2">Zero Data Loss:</span> Protects school from hardware failure or laptop theft. Complete instant recovery.</td>
             </tr>
             <tr>
-                <td><strong>Monthly System Maintenance & Support Retainer</strong><br><small style="color:#64748b;">Cloud backups, uptime monitoring, bug fixes & technical support</small></td>
-                <td>Recurring Monthly Fee</td>
-                <td><strong>MK 70,000 / month</strong></td>
+                <td><strong>2. Fee-Gated Resource Protection</strong></td>
+                <td>Server-enforced access locks: Students who have not paid fees cannot view resources; under 50% paid can view in a protected reader; 50%+ paid can download.</td>
+                <td><span class="tag-v2">Revenue Protection:</span> Forces students to clear outstanding school fees before getting access to lesson notes and past papers.</td>
             </tr>
-            <tr class="total-row">
-                <td colspan="2">Initial Deployment Amount Payable:</td>
-                <td><strong>MK 350,000</strong></td>
+            <tr>
+                <td><strong>3. Dynamic Weekly Timetables</strong></td>
+                <td>Date-specific weekly schedule manager with classroom conflict detection, week navigation, student view, and <strong>1-Click Week Duplication</strong>.</td>
+                <td><span class="tag-v2">Time Savings:</span> Eliminates paper schedule chaos and saves administrative time each week.</td>
+            </tr>
+            <tr>
+                <td><strong>4. Interactive Quiz & Testing Engine</strong></td>
+                <td>Online testing engine with multiple question types (MCQ, True/False, Short Answer), randomized pools, timed tests, instant auto-grading, and answer review controls.</td>
+                <td><span class="tag-v2">Exam Automation:</span> Saves teachers dozens of marking hours and gives students instant grade analysis.</td>
+            </tr>
+            <tr>
+                <td><strong>5. Enterprise Security Hardening</strong></td>
+                <td>Removed public self-registration (admin-controlled only), 1-click student deactivation switch, HTTP anti-tamper security headers, and brute-force login limits.</td>
+                <td><span class="tag-v2">Unhackable Integrity:</span> Strict role separation and absolute privacy for student grades and financial records.</td>
+            </tr>
+            <tr>
+                <td><strong>6. Desktop & Mobile PWA App</strong></td>
+                <td>Installs directly on Windows PC, Mac, Android, and iPhone with offline shell caching and automatic version update detection.</td>
+                <td><span class="tag-v2">Modern App Experience:</span> Works fast on any smartphone, tablet, or desktop computer.</td>
             </tr>
         </tbody>
     </table>
 
     <div class="page-break"></div>
 
-    <h2>4. Scope of Monthly Maintenance Services (MK 70,000 / Month)</h2>
-    <p>The ongoing monthly retainer covers the following operational services:</p>
+    <h2>3. Financial Invoice & Payment Breakdown</h2>
+    <p>
+        The commercial fee for the engineering, security hardening, cloud integration, data migration, and deployment of Version 2.0 is structured as follows:
+    </p>
+
+    <table class="pricing">
+        <thead>
+            <tr>
+                <th>Item Description</th>
+                <th>Payment Type</th>
+                <th>Amount (MWK)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>Version 2.0 System Upgrade & Cloud Infrastructure</strong>
+                    <br>
+                    <small style="color:#64748b;">
+                        Full delivery of Weekly Timetable Module, Fee-Gated Resource Engine, Quiz Platform, Supabase Cloud Database & Storage, Security Overhaul, and PWA Application.
+                    </small>
+                </td>
+                <td>One-Off Upgrade Fee</td>
+                <td><strong>MK 300,000</strong></td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Monthly Cloud Maintenance & Technical Support Retainer</strong>
+                    <br>
+                    <small style="color:#64748b;">
+                        Daily automated cloud backups, continuous database optimization, error monitoring, and priority technical support.
+                    </small>
+                </td>
+                <td>Monthly Retainer (Optional Ongoing)</td>
+                <td><strong>MK 70,000 / month</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="2">TOTAL UPGRADE AMOUNT DUE (UPON DELIVERY):</td>
+                <td><strong>MK 300,000</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="highlight-box">
+        <strong>Payment Terms:</strong> The upgrade fee of <strong>MK 300,000</strong> is payable upon receipt of this document and handover of Version 2.0. Bank transfer or Airtel Money / Mpamba mobile payment details will be provided.
+    </div>
+
+    <h2>4. Scope of Ongoing Monthly Maintenance (MK 70,000 / Month)</h2>
+    <p>The ongoing maintenance retainer includes:</p>
     <ul>
-        <li><strong>Cloud Database Backups:</strong> Routine database snapshots and cloud synchronization monitoring to ensure zero data loss.</li>
-        <li><strong>System Health & Security Monitoring:</strong> Continuous monitoring of server response, storage integrity, and error logs.</li>
-        <li><strong>Corrective Bug Fixes:</strong> Immediate investigation and resolution of any unexpected system errors or bugs reported by staff or students.</li>
-        <li><strong>Administrative Technical Support:</strong> Direct priority technical support (via Phone, WhatsApp, or Email) during normal administrative working hours.</li>
+        <li><strong>Automated Cloud Backups:</strong> Nightly cloud sync monitoring to guarantee data safety.</li>
+        <li><strong>Error & Bug Resolution:</strong> Immediate technical troubleshooting for any reported issues.</li>
+        <li><strong>Administrative Assistance:</strong> Support with academic year rollover, term setup, and bulk enrollments.</li>
     </ul>
-    <p><em>Exclusions:</em> Building brand-new, unrelated functional modules (e.g., separate payroll or inventory modules) will be quoted separately as distinct projects.</p>
 
-    <h2>5. Data Security & Confidentiality</h2>
+    <h2>5. Acceptance & Handover Authorization</h2>
     <p>
-        The Service Provider agrees to maintain strict confidentiality regarding all student records, examination results, fee collection figures, and institutional data. No client data will ever be shared, sold, or exposed to third parties.
-    </p>
-
-    <h2>6. Term & Termination</h2>
-    <p>
-        The monthly maintenance retainer shall commence upon deployment and continue on a month-to-month basis. Either party may terminate the monthly maintenance retainer by providing thirty (30) days written notice.
-    </p>
-
-    <h2>7. Acceptance & Authorization</h2>
-    <p>
-        By signing below, both parties acknowledge and accept the deliverables, terms, and payment schedules outlined in this Agreement.
+        By signing below, the School Administration confirms receipt of the Version 2.0 System Upgrade and approves the billing schedule above.
     </p>
 
     <table class="signatures">
@@ -244,16 +318,16 @@
             <td>
                 <strong>FOR THE CLIENT (School Administration):</strong>
                 <div class="sig-line"></div>
-                <p>Authorized Representative Name: _______________________</p>
-                <p>Title / Designation: ________________________________</p>
-                <p>Signature: __________________ &nbsp; Date: ____________</p>
+                <p>Representative Name: ____________________________</p>
+                <p>Designation: ____________________________________</p>
+                <p>Signature: ___________________ &nbsp; Date: ___________</p>
             </td>
             <td>
-                <strong>FOR THE SERVICE PROVIDER (Developer):</strong>
+                <strong>FOR THE LEAD DEVELOPER:</strong>
                 <div class="sig-line"></div>
                 <p>Developer Name: _________________________________</p>
-                <p>Title: Lead Software Engineer</p>
-                <p>Signature: __________________ &nbsp; Date: ____________</p>
+                <p>Designation: Lead Software Engineer</p>
+                <p>Signature: ___________________ &nbsp; Date: ___________</p>
             </td>
         </tr>
     </table>
