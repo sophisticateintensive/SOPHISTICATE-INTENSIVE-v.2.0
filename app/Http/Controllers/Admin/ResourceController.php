@@ -69,7 +69,7 @@ class ResourceController extends Controller
             }
 
             // Create resource record
-            Resource::create([
+            $resource = Resource::create([
                 'title'        => $validated['title'],
                 'subject_id'   => $validated['subject_id'] ?? null,
                 'file_name'    => $originalName,
@@ -81,8 +81,18 @@ class ResourceController extends Controller
                 'uploaded_by'  => Auth::id(),
             ]);
 
+            // Sync upload to Supabase Cloud Storage
+            try {
+                $supabase = app(\App\Services\SupabaseStorageService::class);
+                if ($supabase->isConfigured()) {
+                    $supabase->uploadFile($path, Storage::disk('local')->path($path), 'resources', $file->getMimeType());
+                }
+            } catch (\Throwable $e) {
+                \Log::warning("Supabase resource upload failed: " . $e->getMessage());
+            }
+
             return redirect()->route('admin.resources.index')
-                ->with('success', 'Resource uploaded successfully!');
+                ->with('success', 'Resource uploaded successfully and synced to cloud storage!');
 
         } catch (\Exception $e) {
             return redirect()->back()
@@ -134,8 +144,17 @@ class ResourceController extends Controller
 
         // Handle new file upload
         if ($request->hasFile('file')) {
+            $oldPath = $resource->file_path;
             if ($resource->fileExists()) {
-                Storage::disk('local')->delete($resource->file_path);
+                Storage::disk('local')->delete($oldPath);
+            }
+            try {
+                $supabase = app(\App\Services\SupabaseStorageService::class);
+                if ($supabase->isConfigured()) {
+                    $supabase->deleteFile($oldPath);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning("Supabase delete old file failed: " . $e->getMessage());
             }
             
             $file = $request->file('file');
@@ -147,6 +166,16 @@ class ResourceController extends Controller
             $resource->file_path = $path;
             $resource->file_size = $file->getSize();
             $resource->file_type = $file->getMimeType();
+
+            // Sync to Supabase
+            try {
+                $supabase = app(\App\Services\SupabaseStorageService::class);
+                if ($supabase->isConfigured()) {
+                    $supabase->uploadFile($path, Storage::disk('local')->path($path), 'resources', $file->getMimeType());
+                }
+            } catch (\Throwable $e) {
+                \Log::warning("Supabase resource upload failed: " . $e->getMessage());
+            }
         }
 
         $resource->save();

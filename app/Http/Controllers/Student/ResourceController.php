@@ -53,7 +53,7 @@ class ResourceController extends Controller
             abort(403, 'Access denied. You must make an initial fee payment to view study resources online.');
         }
 
-        if (! Storage::disk('local')->exists($resource->file_path)) {
+        if (! $resource->fileExists()) {
             abort(404, 'File not found on storage.');
         }
 
@@ -82,7 +82,7 @@ class ResourceController extends Controller
             abort(403, 'Access denied. You must make an initial fee payment to view study resources online.');
         }
 
-        if (! Storage::disk('local')->exists($resource->file_path)) {
+        if (! $resource->fileExists()) {
             abort(404, 'File not found on storage.');
         }
 
@@ -116,7 +116,7 @@ class ResourceController extends Controller
             abort(403, 'Access denied. You must pay at least 50% of your term fees to download resources.');
         }
 
-        if (! Storage::disk('local')->exists($resource->file_path)) {
+        if (! $resource->fileExists()) {
             abort(404, 'File not found on storage.');
         }
 

@@ -40,6 +40,7 @@ return [
         'key'              => env('SUPABASE_KEY', env('SUPABASE_ANON_KEY')),
         'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
         'bucket'           => env('SUPABASE_STORAGE_BUCKET', 'backups'),
+        'resource_bucket'  => env('SUPABASE_RESOURCE_BUCKET', 'resources'),
     ],
 
 ];
