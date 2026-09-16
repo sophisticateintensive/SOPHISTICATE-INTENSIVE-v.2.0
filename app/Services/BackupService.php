@@ -53,6 +53,7 @@ class BackupService
                 'quiz_options',
                 'quiz_attempts',
                 'quiz_answers',
+                'timetables',
             ];
 
             $data = [
