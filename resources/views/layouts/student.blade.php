@@ -7,18 +7,20 @@
 
     <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sophisticate">
-    <meta name="application-name" content="Sophisticate">
+    <meta name="apple-mobile-web-app-title" content="Sophisticate Intensive Classes">
+    <meta name="application-name" content="Sophisticate Intensive Classes">
     <meta name="theme-color" content="#09090b" id="theme-color-meta">
     <meta name="format-detection" content="telephone=no">
 
-    <title>@yield('title', 'Sophisticate · Next-Gen Student Portal')</title>
+    <title>@yield('title', 'Student Portal · Sophisticate Intensive Classes')</title>
 
     <!-- Next-Gen Typography: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -334,9 +336,9 @@
                 <!-- Profile Avatar Pill -->
                 <a href="{{ route('student.profile') }}"
                     class="h-8 pl-1 pr-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 flex items-center space-x-1.5 hover:ring-2 hover:ring-blue-500 transition">
-                    @php $profilePic = Auth::user()->student?->profile_picture; @endphp
-                    @if($profilePic)
-                        <img src="{{ Storage::url($profilePic) }}" alt="avatar"
+                    @php $profilePicUrl = Auth::user()->student?->profile_picture_url; @endphp
+                    @if($profilePicUrl)
+                        <img src="{{ $profilePicUrl }}" alt="avatar"
                              class="w-6 h-6 rounded-full object-cover ring-1 ring-blue-500/40 flex-shrink-0">
                     @else
                         <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-[10px] flex items-center justify-center shadow-sm flex-shrink-0">

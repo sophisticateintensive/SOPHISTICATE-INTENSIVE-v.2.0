@@ -41,6 +41,7 @@ return [
         'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
         'bucket'           => env('SUPABASE_STORAGE_BUCKET', 'backups'),
         'resource_bucket'  => env('SUPABASE_RESOURCE_BUCKET', 'resources'),
+        'avatar_bucket'    => env('SUPABASE_AVATAR_BUCKET', 'avatars'),
     ],
 
 ];

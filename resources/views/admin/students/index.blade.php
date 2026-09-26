@@ -195,8 +195,8 @@
                     <div class="relative h-24 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 flex items-center justify-between px-4 pt-4">
                         <div class="flex items-center space-x-3">
                             <div class="relative">
-                                @if($student->profile_picture)
-                                    <img src="{{ Storage::url($student->profile_picture) }}" alt="{{ $student->user->name }}"
+                                @if($student->profile_picture_url)
+                                    <img src="{{ $student->profile_picture_url }}" alt="{{ $student->user->name }}"
                                          class="w-14 h-14 rounded-full object-cover shadow-lg ring-4 ring-white/50 dark:ring-zinc-700/50">
                                 @else
                                     <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-4 ring-white/50">

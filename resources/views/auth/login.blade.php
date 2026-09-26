@@ -8,17 +8,19 @@
 
     <!-- PWA & Mobile Web App Meta Tags -->
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/favicon-16x16.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sophisticate">
-    <meta name="application-name" content="Sophisticate">
+    <meta name="apple-mobile-web-app-title" content="Sophisticate Intensive Classes">
+    <meta name="application-name" content="Sophisticate Intensive Classes">
     <meta name="theme-color" content="#09090b">
 
-    <title>{{ __('Login') }} · Sophisticate Intensive</title>
+    <title>{{ __('Login') }} · Sophisticate Intensive Classes</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

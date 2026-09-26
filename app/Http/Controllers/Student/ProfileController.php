@@ -49,13 +49,38 @@ class ProfileController extends Controller
 
             // Handle profile picture upload
             if ($request->hasFile('profile_picture')) {
-                // Delete the old picture if it exists
+                // Delete the old picture if it exists locally and in Supabase
                 if ($student->profile_picture) {
                     Storage::disk('public')->delete($student->profile_picture);
+                    try {
+                        $supabase = app(\App\Services\SupabaseStorageService::class);
+                        if ($supabase->isConfigured()) {
+                            $supabase->deleteFile($student->profile_picture, $supabase->getAvatarBucket());
+                        }
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Could not delete old avatar from Supabase: " . $e->getMessage());
+                    }
                 }
+
                 // Store new picture under profile_pictures/
                 $path = $request->file('profile_picture')->store('profile_pictures', 'public');
                 $studentData['profile_picture'] = $path;
+
+                // Sync to Supabase Cloud Storage (Public Avatars Bucket)
+                try {
+                    $supabase = app(\App\Services\SupabaseStorageService::class);
+                    if ($supabase->isConfigured()) {
+                        $avatarBucket = $supabase->getAvatarBucket();
+                        $supabase->ensureBucketExists($avatarBucket, true);
+                        $localFullPath = Storage::disk('public')->path($path);
+                        $uploadResult = $supabase->uploadFile($path, $localFullPath, $avatarBucket);
+                        if (!empty($uploadResult['success'])) {
+                            \Illuminate\Support\Facades\Log::info("Student avatar synced to Supabase: {$path}");
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to sync avatar to Supabase: " . $e->getMessage());
+                }
             }
 
             $student->update($studentData);

@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', 'Learning Vault · Sophisticate Intensive Classes')
+
 @section('content')
 <!-- Include PDF.js for in-portal embedded canvas rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>

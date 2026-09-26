@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', ($course->course_name ?? 'Course Details') . ' · Sophisticate Intensive Classes')
+
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
 

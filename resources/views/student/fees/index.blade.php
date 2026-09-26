@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', 'Tuition Wallet · Sophisticate Intensive Classes')
+
 @section('content')
 <div class="space-y-6">
 

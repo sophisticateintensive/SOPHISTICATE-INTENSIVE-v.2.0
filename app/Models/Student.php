@@ -50,6 +50,32 @@ class Student extends Model
     }
 
     /**
+     * Get the accessible public URL for the student's profile picture.
+     * Serves from Supabase CDN when configured or falls back to local storage disk.
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (empty($this->profile_picture)) {
+            return null;
+        }
+
+        if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://')) {
+            return $this->profile_picture;
+        }
+
+        try {
+            $supabase = app(\App\Services\SupabaseStorageService::class);
+            if ($supabase->isConfigured()) {
+                return $supabase->getPublicUrl($this->profile_picture, $supabase->getAvatarBucket());
+            }
+        } catch (\Throwable $e) {
+            // Fall back to local disk
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_picture);
+    }
+
+    /**
      * Get the user account associated with this student
      */
     public function user()

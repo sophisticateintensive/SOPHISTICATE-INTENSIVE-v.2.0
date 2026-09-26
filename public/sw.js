@@ -47,8 +47,14 @@ const STATIC_ORIGIN_WHITELIST = [
  */
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(PRECACHE_ASSETS);
+        caches.open(CACHE_NAME).then(async (cache) => {
+            await Promise.allSettled(
+                PRECACHE_ASSETS.map((asset) => {
+                    return cache.add(asset).catch((err) => {
+                        console.warn('[SW] Precache skipped for asset:', asset, err);
+                    });
+                })
+            );
         }).then(() => self.skipWaiting())
     );
 });

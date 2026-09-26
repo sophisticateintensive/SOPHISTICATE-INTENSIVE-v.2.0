@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
         // Enforce Malawi Local Time (CAT / Africa/Blantyre, UTC+2)
         date_default_timezone_set(config('app.timezone', 'Africa/Blantyre'));
 
-        if (env('APP_ENV') === 'production') {
+        if ($this->app->environment('production') || config('app.env') === 'production') {
             URL::forceScheme('https');
         }
     }

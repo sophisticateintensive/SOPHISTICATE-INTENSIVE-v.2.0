@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', 'Grades & Performance · Sophisticate Intensive Classes')
+
 @section('content')
 @php
     $averageMarks = $results->avg('marks') ?? 0;

@@ -219,8 +219,8 @@
                         <!-- Card Header -->
                         <div class="p-5 border-b border-[var(--border-color)] bg-gradient-to-r from-blue-500/5 to-transparent flex items-center justify-between gap-3">
                             <div class="flex items-center gap-3 min-w-0">
-                                @if($student->profile_picture)
-                                    <img src="{{ Storage::url($student->profile_picture) }}" alt="{{ $student->user->name }}"
+                                @if($student->profile_picture_url)
+                                    <img src="{{ $student->profile_picture_url }}" alt="{{ $student->user->name }}"
                                          class="w-11 h-11 rounded-2xl object-cover ring-2 ring-blue-500/30 flex-shrink-0">
                                 @else
                                     <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 font-mono shadow-sm">
@@ -339,8 +339,8 @@
                                     data-count="{{ $courseCount }}">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center gap-3">
-                                            @if($student->profile_picture)
-                                                <img src="{{ Storage::url($student->profile_picture) }}" alt="{{ $student->user->name }}"
+                                            @if($student->profile_picture_url)
+                                                <img src="{{ $student->profile_picture_url }}" alt="{{ $student->user->name }}"
                                                      class="w-9 h-9 rounded-xl object-cover ring-2 ring-blue-500/30 flex-shrink-0">
                                             @else
                                                 <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">

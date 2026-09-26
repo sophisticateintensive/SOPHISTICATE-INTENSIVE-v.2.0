@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', 'Send Advisory Message · Sophisticate Intensive Classes')
+
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
 

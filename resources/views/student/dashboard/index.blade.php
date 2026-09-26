@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', 'Student Hub · Sophisticate Intensive Classes')
+
 @section('content')
 <style>
     /* Futuristic Pass Styling */
@@ -74,8 +76,8 @@
             
             <div class="space-y-4">
                 <div class="flex items-center space-x-3.5">
-                    @if($student->profile_picture)
-                        <img src="{{ Storage::url($student->profile_picture) }}" alt="Profile Photo"
+                    @if($student->profile_picture_url)
+                        <img src="{{ $student->profile_picture_url }}" alt="Profile Photo"
                              class="w-14 h-14 rounded-2xl object-cover ring-2 ring-blue-500/40 shadow-lg flex-shrink-0">
                     @else
                         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-xl font-black font-mono shadow-md flex-shrink-0">

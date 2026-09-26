@@ -1,10 +1,13 @@
 @extends('layouts.student')
 
+@section('title', 'My Profile · Sophisticate Intensive Classes')
+
 @section('content')
 @php
     $user    = $user ?? Auth::user();
     $student = $user->student ?? null;
     $profilePic = $student?->profile_picture;
+    $profilePicUrl = $student?->profile_picture_url;
 @endphp
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -27,8 +30,8 @@
         <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
 
             <!-- Avatar display -->
-            @if($profilePic)
-                <img src="{{ Storage::url($profilePic) }}" alt="Profile Photo"
+            @if($profilePicUrl)
+                <img src="{{ $profilePicUrl }}" alt="Profile Photo"
                      class="w-20 h-20 rounded-3xl object-cover ring-4 ring-blue-500/30 shadow-xl flex-shrink-0">
             @else
                 <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-3xl font-black font-mono shadow-xl flex-shrink-0 select-none">
@@ -60,7 +63,7 @@
     <!-- ======== PROFILE PICTURE UPLOAD CARD ======== -->
     <div class="cyber-card p-6 sm:p-8 space-y-5"
          x-data="{
-             preview: '{{ $profilePic ? Storage::url($profilePic) : '' }}',
+             preview: '{{ $profilePicUrl ?: '' }}',
              handleFile(e) {
                  const file = e.target.files[0];
                  if (!file) return;

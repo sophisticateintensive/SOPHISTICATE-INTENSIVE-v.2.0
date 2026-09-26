@@ -11,12 +11,32 @@ class SupabaseStorageService
     protected string $supabaseUrl;
     protected string $supabaseKey;
     protected string $resourceBucket;
+    protected string $avatarBucket;
 
     public function __construct()
     {
         $this->supabaseUrl     = rtrim((string) (config('services.supabase.url') ?: env('SUPABASE_URL', '')), '/');
         $this->supabaseKey     = (string) (config('services.supabase.service_role_key') ?: config('services.supabase.key') ?: env('SUPABASE_KEY', ''));
         $this->resourceBucket  = (string) (config('services.supabase.resource_bucket') ?: env('SUPABASE_RESOURCE_BUCKET', 'resources'));
+        $this->avatarBucket    = (string) (config('services.supabase.avatar_bucket') ?: env('SUPABASE_AVATAR_BUCKET', 'avatars'));
+    }
+
+    /**
+     * Get the public URL for an asset in a public bucket.
+     */
+    public function getPublicUrl(string $remotePath, ?string $bucket = null): string
+    {
+        $bucket    = $bucket ?: $this->avatarBucket;
+        $cleanPath = ltrim(str_replace('\\', '/', $remotePath), '/');
+        return "{$this->supabaseUrl}/storage/v1/object/public/{$bucket}/{$cleanPath}";
+    }
+
+    /**
+     * Get the avatar bucket name.
+     */
+    public function getAvatarBucket(): string
+    {
+        return $this->avatarBucket;
     }
 
     /**

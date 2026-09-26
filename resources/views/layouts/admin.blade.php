@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin · Sophisticate Intensive')</title>
+    <!-- Favicon & Icons -->
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
+
+    <title>@yield('title', 'Admin Portal · Sophisticate Intensive Classes')</title>
 
     <!-- Premium Typography: Plus Jakarta Sans + Outfit + Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

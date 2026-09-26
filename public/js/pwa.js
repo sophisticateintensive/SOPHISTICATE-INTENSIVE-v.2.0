@@ -171,12 +171,13 @@
             }
         }
 
-        // Attach click listeners to any .pwa-install-trigger
-        document.querySelectorAll('.pwa-install-trigger').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
+        // Delegated click listener for any .pwa-install-trigger button or child
+        document.addEventListener('click', (e) => {
+            const trigger = e.target.closest('.pwa-install-trigger');
+            if (trigger) {
                 e.preventDefault();
                 window.SophisticatePWA.install();
-            });
+            }
         });
     });
 

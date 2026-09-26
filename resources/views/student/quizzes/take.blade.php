@@ -1,5 +1,7 @@
 @extends('layouts.student')
 
+@section('title', ($quiz->title ?? 'Take Quiz') . ' · Sophisticate Intensive Classes')
+
 @section('content')
     @php
         $totalQuestions = $questions->count();
