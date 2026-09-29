@@ -21,7 +21,7 @@
 
 @section('content')
     @php
-        $totalYears = $academicYears->total();
+        $totalYears = method_exists($academicYears, 'total') ? $academicYears->total() : $academicYears->count();
         $activeYear = \App\Models\AcademicYear::where('is_current', true)->first();
         $totalTermsCount = \App\Models\Term::count();
         $activeEnrollments = \App\Models\StudentEnrollment::where('status', 'active')->count();
@@ -150,7 +150,7 @@
                 </div>
             </div>
             <span class="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-full font-mono">
-                {{ $academicYears->total() }} Sessions
+                {{ $totalYears }} Sessions
             </span>
         </div>
 
