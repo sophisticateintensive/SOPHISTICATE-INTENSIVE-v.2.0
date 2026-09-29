@@ -4,33 +4,28 @@ set -e
 echo "=== Sophisticate Intensive Classes — Railway Startup ==="
 
 # ──────────────────────────────────────────────────────────────
-# DEBUG: Print all available environment variables for diagnosis
+# 1. Print diagnostics (masked passwords)
 # ──────────────────────────────────────────────────────────────
 echo "--- ENV DIAGNOSTICS ---"
 echo "MYSQL_PRIVATE_URL set: $([ -n "${MYSQL_PRIVATE_URL}" ] && echo YES || echo NO)"
-echo "MYSQL_URL set:         $([ -n "${MYSQL_URL}" ]         && echo YES || echo NO)"
-echo "DATABASE_URL set:      $([ -n "${DATABASE_URL}" ]      && echo YES || echo NO)"
 echo "DB_HOST:               ${DB_HOST:-NOT SET}"
 echo "DB_PORT:               ${DB_PORT:-NOT SET}"
 echo "DB_DATABASE:           ${DB_DATABASE:-NOT SET}"
 echo "DB_USERNAME:           ${DB_USERNAME:-NOT SET}"
+echo "DB_PASSWORD set:       $([ -n "${DB_PASSWORD}" ] && echo YES || echo NO)"
 echo "-----------------------"
 
 # ──────────────────────────────────────────────────────────────
-# 1. Resolve DB credentials from Railway's URL environment vars
+# 2. Try to resolve DB credentials:
+#    Priority: MYSQL_PRIVATE_URL > individual DB_* vars
 # ──────────────────────────────────────────────────────────────
 RAILWAY_DB_URL="${MYSQL_PRIVATE_URL:-${MYSQL_URL:-${DATABASE_URL:-}}}"
 
 if [ -n "$RAILWAY_DB_URL" ]; then
-    echo "Parsing DB credentials from URL..."
-
-    # Strip scheme (mysql:// or mysql2://)
+    echo "Parsing DB credentials from Railway URL..."
     STRIPPED="${RAILWAY_DB_URL#mysql*://}"
-
-    # Extract user:pass@host:port/dbname
     USERINFO="${STRIPPED%%@*}"
     HOSTINFO="${STRIPPED##*@}"
-
     export DB_USERNAME="${USERINFO%%:*}"
     export DB_PASSWORD="${USERINFO#*:}"
     export DB_HOST="${HOSTINFO%%:*}"
@@ -38,44 +33,42 @@ if [ -n "$RAILWAY_DB_URL" ]; then
     export DB_PORT="${PORTDB%%/*}"
     export DB_DATABASE="${PORTDB##*/}"
     export DB_CONNECTION="mysql"
+    echo "  -> DB_HOST=$DB_HOST  DB_PORT=$DB_PORT  DB_DATABASE=$DB_DATABASE"
 
-    echo "  -> DB_HOST=$DB_HOST"
-    echo "  -> DB_PORT=$DB_PORT"
-    echo "  -> DB_DATABASE=$DB_DATABASE"
-    echo "  -> DB_USERNAME=$DB_USERNAME"
+elif [ -n "${DB_HOST}" ] && [ "${DB_HOST}" != "127.0.0.1" ]; then
+    echo "Using individual DB_* environment variables..."
+    echo "  -> DB_HOST=$DB_HOST  DB_PORT=${DB_PORT:-3306}  DB_DATABASE=$DB_DATABASE"
+    export DB_CONNECTION="mysql"
+
 else
-    echo "ERROR: No Railway MySQL URL found (MYSQL_PRIVATE_URL, MYSQL_URL, DATABASE_URL are all empty)."
-    echo "Please add MYSQL_PRIVATE_URL = \${{ MySQL-QYu9.MYSQL_PRIVATE_URL }} to your web service variables."
-
-    # If individual DB_HOST is also not set, fail fast with a clear message
-    if [ -z "${DB_HOST}" ] || [ "${DB_HOST}" = "127.0.0.1" ]; then
-        echo "FATAL: No database credentials available. Cannot continue."
-        exit 1
-    fi
-
-    echo "Falling back to existing DB_* env vars..."
+    echo "FATAL: No database credentials found."
+    echo "  Set DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD"
+    echo "  with the actual values from your MySQL-QYu9 service in Railway."
+    exit 1
 fi
 
 # ──────────────────────────────────────────────────────────────
-# 2. Clear any cached config so fresh env vars take effect
+# 3. Clear cached config so fresh env vars are used
 # ──────────────────────────────────────────────────────────────
 echo "Clearing config cache..."
 php artisan config:clear --no-ansi 2>/dev/null || true
-php artisan cache:clear --no-ansi 2>/dev/null || true
+php artisan cache:clear  --no-ansi 2>/dev/null || true
 
 # ──────────────────────────────────────────────────────────────
-# 3. Wait for MySQL via raw TCP (no artisan, no DB config needed)
+# 4. Wait for MySQL via TCP socket (no artisan required)
 # ──────────────────────────────────────────────────────────────
-echo "Waiting for database at ${DB_HOST}:${DB_PORT}..."
+TARGET_HOST="${DB_HOST}"
+TARGET_PORT="${DB_PORT:-3306}"
+echo "Waiting for database at ${TARGET_HOST}:${TARGET_PORT}..."
 MAX_RETRIES=30
 COUNT=0
 until php -r "
-    \$conn = @fsockopen('${DB_HOST}', ${DB_PORT:-3306}, \$errno, \$errstr, 2);
+    \$conn = @fsockopen('${TARGET_HOST}', ${TARGET_PORT}, \$errno, \$errstr, 2);
     if (\$conn) { fclose(\$conn); exit(0); } exit(1);
 " 2>/dev/null; do
     COUNT=$((COUNT+1))
     if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-        echo "FATAL: Database not reachable at ${DB_HOST}:${DB_PORT} after ${MAX_RETRIES} attempts."
+        echo "FATAL: Cannot reach ${TARGET_HOST}:${TARGET_PORT} after ${MAX_RETRIES} attempts."
         exit 1
     fi
     echo "  DB not ready yet ($COUNT/$MAX_RETRIES)..."
@@ -84,7 +77,7 @@ done
 echo "Database is ready!"
 
 # ──────────────────────────────────────────────────────────────
-# 4. Run migrations & seed
+# 5. Migrate & seed
 # ──────────────────────────────────────────────────────────────
 echo "Running migrations..."
 php artisan migrate --force --no-ansi
@@ -93,15 +86,15 @@ echo "Seeding admin account..."
 php artisan db:seed --class=AdminSeeder --force --no-ansi
 
 # ──────────────────────────────────────────────────────────────
-# 5. Cache config/routes/views for production performance
+# 6. Cache for production
 # ──────────────────────────────────────────────────────────────
-echo "Optimizing application..."
+echo "Optimizing..."
 php artisan config:cache --no-ansi
-php artisan route:cache --no-ansi
-php artisan view:cache --no-ansi
+php artisan route:cache  --no-ansi
+php artisan view:cache   --no-ansi
 
 # ──────────────────────────────────────────────────────────────
-# 6. Start the PHP server
+# 7. Start server
 # ──────────────────────────────────────────────────────────────
 echo "Starting server on 0.0.0.0:${PORT:-8080}..."
 php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
