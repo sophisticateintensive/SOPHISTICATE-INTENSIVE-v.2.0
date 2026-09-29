@@ -77,7 +77,14 @@ done
 echo "Database is ready!"
 
 # ──────────────────────────────────────────────────────────────
-# 5. Migrate & seed
+# 5. Fix storage permissions & create symlink
+# ──────────────────────────────────────────────────────────────
+echo "Setting up storage..."
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+php artisan storage:link --force --no-ansi 2>/dev/null || true
+
+# ──────────────────────────────────────────────────────────────
+# 6. Migrate & seed
 # ──────────────────────────────────────────────────────────────
 echo "Running migrations..."
 php artisan migrate --force --no-ansi
