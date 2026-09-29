@@ -101,17 +101,15 @@ class Student extends Model
 
     /**
      * Check if the student has paid any amount towards their fees (> 0%).
-     * Returns true if no fees are recorded (unrestricted).
      * Required to view online resources.
      */
     public function canViewResources(): bool
     {
-        return $this->feePaymentPercentage() > 0;
+        return $this->feePaymentPercentage() > 0.0;
     }
 
     /**
      * Check if the student has paid at least half (50%) of their fees.
-     * Returns true if no fees are recorded (unrestricted).
      * Required to download resources.
      */
     public function canDownloadResources(): bool
@@ -122,8 +120,6 @@ class Student extends Model
     /**
      * Check if the student has paid at least half (50%) of their fees
      * for the currently active enrollment term.
-     * Falls back to all-time fees when no active enrollment exists.
-     * Students with no fees on record are considered to have met the requirement.
      */
     public function hasHalfPaidFees(): bool
     {
@@ -132,7 +128,7 @@ class Student extends Model
 
     /**
      * Get the percentage of fees paid for the active term (or all-time).
-     * Returns 100.0 if no fees exist for the term.
+     * Returns 0.0 if no fees exist or no payments have been made.
      */
     public function feePaymentPercentage(): float
     {
@@ -140,7 +136,7 @@ class Student extends Model
 
         // Scope to active enrollment term when one exists
         $active = $this->activeEnrollment;
-        if ($active) {
+        if ($active && $active->academic_year_id && $active->term_id) {
             $query = $query
                 ->where('academic_year_id', $active->academic_year_id)
                 ->where('term_id', $active->term_id);
@@ -151,9 +147,16 @@ class Student extends Model
         $totalAmount = (float) ($totals->total_amount ?? 0);
         $totalPaid   = (float) ($totals->total_paid   ?? 0);
 
-        // No fees recorded for this term → 100% paid (unrestricted)
+        // Fallback: If no fees are invoiced for the active term, check all-time fees
         if ($totalAmount <= 0) {
-            return 100.0;
+            $allTotals = $this->fees()->selectRaw('SUM(amount) as total_amount, SUM(paid) as total_paid')->first();
+            $totalAmount = (float) ($allTotals->total_amount ?? 0);
+            $totalPaid   = (float) ($allTotals->total_paid   ?? 0);
+        }
+
+        // If no fees exist on record or no amount has been paid, access is 0% (locked)
+        if ($totalAmount <= 0 || $totalPaid <= 0) {
+            return 0.0;
         }
 
         return min(100.0, round(($totalPaid / $totalAmount) * 100, 2));
