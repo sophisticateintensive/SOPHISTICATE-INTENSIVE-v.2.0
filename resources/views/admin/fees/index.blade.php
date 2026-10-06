@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('header')
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -16,6 +16,12 @@
                 :isHistorical="$isHistorical" 
                 :allTerms="$terms"
             />
+
+            <a href="{{ route('admin.fees.bulk.create') }}"
+                class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition-all duration-200">
+                <i class="fas fa-bolt mr-1.5"></i>
+                Bulk Generate
+            </a>
 
             <a href="{{ route('admin.fees.create') }}"
                 class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition-all duration-200 group">
@@ -80,7 +86,7 @@
             <div>
                 <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/20 text-sm font-medium text-white mb-3">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                    {{ $fees->total() }} fee records · {{ $paidCountAll }} fully cleared
+                    {{ $fees->total() }} fee records Â· {{ $paidCountAll }} fully cleared
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-white">Tuition Financial Ledger</h1>
                 <p class="text-blue-100/80 mt-1">Real-time revenue monitoring and student payment status</p>
@@ -354,7 +360,14 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
                                         <div class="flex items-center justify-end space-x-2">
-                                            <a href="{{ route('admin.fees.show', $fee) }}" class="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all" title="View & Payment">
+                                            @if(!$fee->is_fully_paid)
+                                                 <button type="button"
+                                                     onclick="openQuickPay({{ $fee->id }}, '{{ addslashes($fee->student->user->name ?? ''Student'') }}', {{ $fee->balance }}, '{{ addslashes($fee->type) }}')"
+                                                     class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all" title="Quick Pay">
+                                                     <i class="fas fa-bolt text-sm"></i>
+                                                 </button>
+                                             @endif
+                                             <a href="{{ route('admin.fees.show', $fee) }}" class="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all" title="View & Payment">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -407,4 +420,118 @@
             @endif
         </div>
     </div>
+
+                 {{-- ===== QUICK-PAY MODAL ===== --}}
+                 <div id="quickPayModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                     <div class="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] shadow-2xl p-6 w-full max-w-sm space-y-4">
+                         <div class="flex items-center justify-between">
+                             <h3 class="text-base font-black text-[var(--text-primary)] flex items-center gap-2">
+                                 <i class="fas fa-bolt text-emerald-500"></i> Quick Payment
+                             </h3>
+                             <button onclick="closeQuickPay()" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">
+                                 <i class="fas fa-times text-lg"></i>
+                             </button>
+                         </div>
+                         <div class="p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--border-color)] text-sm space-y-1">
+                             <p class="font-bold text-[var(--text-primary)]" id="qp-student-name"></p>
+                             <p class="text-xs text-[var(--text-muted)]" id="qp-fee-type"></p>
+                             <p class="text-xs font-mono font-bold text-rose-500">Balance: MK <span id="qp-balance"></span></p>
+                         </div>
+                         <div>
+                             <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Payment Amount (MK) *</label>
+                             <input type="number" id="qp-amount" min="1" step="1" placeholder="Enter amount..."
+                                    class="w-full px-4 py-3 text-lg font-black font-mono bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-emerald-500 text-[var(--text-primary)]">
+                         </div>
+                         <div id="qp-message" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+                         <div class="flex gap-3">
+                             <button onclick="closeQuickPay()"
+                                     class="flex-1 py-2.5 border border-[var(--border-color)] rounded-xl text-sm font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition">
+                                 Cancel
+                             </button>
+                             <button onclick="submitQuickPay()"
+                                     id="qp-submit-btn"
+                                     class="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-black hover:shadow-lg transition flex items-center justify-center gap-2">
+                                 <i class="fas fa-check"></i> Record Payment
+                             </button>
+                         </div>
+                     </div>
+                 </div>
 @endsection
+
+@push('scripts')
+<script>
+let _qpFeeId = null;
+let _qpBalance = 0;
+
+function openQuickPay(feeId, studentName, balance, feeType) {
+    _qpFeeId = feeId;
+    _qpBalance = balance;
+    document.getElementById('qp-student-name').textContent = studentName;
+    document.getElementById('qp-fee-type').textContent = feeType;
+    document.getElementById('qp-balance').textContent = Number(balance).toLocaleString();
+    document.getElementById('qp-amount').value = '';
+    const msg = document.getElementById('qp-message');
+    msg.className = 'hidden p-3 rounded-xl text-xs font-semibold';
+    msg.textContent = '';
+    const modal = document.getElementById('quickPayModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => document.getElementById('qp-amount').focus(), 100);
+}
+
+function closeQuickPay() {
+    const modal = document.getElementById('quickPayModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+async function submitQuickPay() {
+    const amount = parseFloat(document.getElementById('qp-amount').value);
+    if (!amount || amount <= 0) {
+        showQpMessage('Please enter a valid amount.', 'error');
+        return;
+    }
+    const btn = document.getElementById('qp-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+        const res = await fetch(`/admin/fees/${_qpFeeId}/payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ payment_amount: amount }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            showQpMessage('✅ ' + data.message, 'success');
+            setTimeout(() => { closeQuickPay(); window.location.reload(); }, 1200);
+        } else {
+            showQpMessage(data.message || 'Payment failed.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Record Payment';
+        }
+    } catch (e) {
+        showQpMessage('Network error. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Record Payment';
+    }
+}
+
+function showQpMessage(text, type) {
+    const el = document.getElementById('qp-message');
+    el.textContent = text;
+    el.className = 'p-3 rounded-xl text-xs font-semibold ' + (type === 'success'
+        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+        : 'bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20');
+}
+
+// Close modal on backdrop click
+document.getElementById('quickPayModal').addEventListener('click', function(e) {
+    if (e.target === this) closeQuickPay();
+});
+</script>
+@endpush

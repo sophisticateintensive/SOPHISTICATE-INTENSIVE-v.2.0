@@ -301,21 +301,124 @@ class FeeController extends Controller
     }
 
     /**
-     * Record a payment for a fee.
+     * Record a payment for a fee — supports both redirect and JSON (for inline quick-pay modal).
      */
     public function recordPayment(Request $request, Fee $fee)
     {
         $validated = $request->validate([
-            'payment_amount' => 'required|numeric|min:0.01|max:' . $fee->balance,
-            'notes' => 'nullable|string',
+            'payment_amount' => 'required|numeric|min:0.01',
+            'notes'          => 'nullable|string',
         ]);
 
-        $fee->paid += $validated['payment_amount'];
+        // Cap to remaining balance
+        $payment = min((float) $validated['payment_amount'], $fee->balance);
+        $fee->paid += $payment;
         $fee->updateStatus();
+        $fee->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success'     => true,
+                'paid'        => $fee->paid,
+                'balance'     => $fee->balance,
+                'is_fully_paid' => $fee->is_fully_paid,
+                'message'     => 'Payment of MK ' . number_format($payment, 0) . ' recorded.',
+            ]);
+        }
 
         return redirect()->route('admin.fees.show', $fee)
             ->with('success', 'Payment recorded successfully.');
     }
+
+    /**
+     * Show bulk fee generation form.
+     */
+    public function bulkCreate()
+    {
+        $currentYear = ActiveSemesterService::getActiveYear();
+        $currentTerm = ActiveSemesterService::getActiveTerm();
+
+        $academicYears = AcademicYear::all();
+        $terms         = Term::with('academicYear')->get();
+        $students      = Student::with('user')->get();
+
+        return view('admin.fees.bulk', compact(
+            'academicYears', 'terms', 'students', 'currentYear', 'currentTerm'
+        ));
+    }
+
+    /**
+     * Bulk-generate the same fee for multiple students at once.
+     */
+    public function bulkStore(Request $request)
+    {
+        $activeYear = ActiveSemesterService::getActiveYear();
+        $activeTerm = ActiveSemesterService::getActiveTerm();
+
+        if (!$request->filled('academic_year_id') && $activeYear) {
+            $request->merge(['academic_year_id' => $activeYear->id]);
+        }
+        if (!$request->filled('term_id') && $activeTerm) {
+            $request->merge(['term_id' => $activeTerm->id]);
+        }
+
+        $validated = $request->validate([
+            'student_ids'      => 'required|array|min:1',
+            'student_ids.*'    => 'exists:students,id',
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'term_id'          => 'required|exists:terms,id',
+            'type'             => 'required|string|max:50',
+            'description'      => 'nullable|string',
+            'amount'           => 'required|numeric|min:0',
+            'paid'             => 'nullable|numeric|min:0',
+            'due_date'         => 'required|date',
+            'notes'            => 'nullable|string',
+        ]);
+
+        $term = Term::find($validated['term_id']);
+        if ($term && $term->is_locked) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Cannot create fees for locked semester '{$term->term_name}'. Unlock the semester first.");
+        }
+
+        $created  = 0;
+        $skipped  = 0;
+
+        foreach ($validated['student_ids'] as $studentId) {
+            // Skip if this student already has this fee type for this term
+            $exists = Fee::where('student_id', $studentId)
+                ->where('term_id', $validated['term_id'])
+                ->where('type', $validated['type'])
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            Fee::create([
+                'student_id'       => $studentId,
+                'academic_year_id' => $validated['academic_year_id'],
+                'term_id'          => $validated['term_id'],
+                'type'             => $validated['type'],
+                'description'      => $validated['description'] ?? null,
+                'amount'           => $validated['amount'],
+                'paid'             => $validated['paid'] ?? 0,
+                'due_date'         => $validated['due_date'],
+                'notes'            => $validated['notes'] ?? null,
+            ]);
+            $created++;
+        }
+
+        $message = "✅ {$created} fee invoice(s) generated successfully.";
+        if ($skipped > 0) {
+            $message .= " {$skipped} skipped (already had this fee type for this term).";
+        }
+
+        return redirect()->route('admin.fees.index')->with('success', $message);
+    }
+
 
     /**
      * Export fees to CSV

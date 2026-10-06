@@ -92,6 +92,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Fees
     Route::get('fees/export', [App\Http\Controllers\Admin\FeeController::class, 'export'])->name('fees.export');
+    Route::get('fees/bulk', [App\Http\Controllers\Admin\FeeController::class, 'bulkCreate'])->name('fees.bulk.create');
+    Route::post('fees/bulk', [App\Http\Controllers\Admin\FeeController::class, 'bulkStore'])->name('fees.bulk.store');
     Route::resource('fees', App\Http\Controllers\Admin\FeeController::class);
     Route::post('/fees/{fee}/payment', [App\Http\Controllers\Admin\FeeController::class, 'recordPayment'])->name('fees.payment');
     Route::get('/fees/export/all', [App\Http\Controllers\Admin\FeeController::class, 'exportAll'])->name('fees.export.all');
