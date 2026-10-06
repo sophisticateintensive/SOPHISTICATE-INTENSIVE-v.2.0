@@ -55,6 +55,8 @@ class TermController extends BaseController
         $validated = $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
             'term_name'        => 'required|string|max:255',
+            'start_date'       => 'nullable|date',
+            'end_date'         => 'nullable|date|after_or_equal:start_date',
             'is_locked'        => 'sometimes|boolean',
             'is_current'       => 'sometimes|boolean',
         ]);
@@ -97,6 +99,8 @@ class TermController extends BaseController
         $validated = $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
             'term_name'        => 'required|string|max:255',
+            'start_date'       => 'nullable|date',
+            'end_date'         => 'nullable|date|after_or_equal:start_date',
             'is_locked'        => 'sometimes|boolean',
             'is_current'       => 'sometimes|boolean',
         ]);

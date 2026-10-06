@@ -11,14 +11,33 @@ class Term extends Model
     protected $fillable = [
         'academic_year_id',
         'term_name',
+        'start_date',
+        'end_date',
         'is_locked',
         'is_current',
     ];
 
     protected $casts = [
-        'is_locked' => 'boolean',
-        'is_current' => 'boolean',
+        'is_locked'   => 'boolean',
+        'is_current'  => 'boolean',
+        'start_date'  => 'date',
+        'end_date'    => 'date',
     ];
+
+    /**
+     * Get the semester/term end date for graduation auto-population.
+     */
+    public function getSemesterEndDate(): string
+    {
+        if ($this->end_date) {
+            return \Carbon\Carbon::parse($this->end_date)->format('Y-m-d');
+        }
+        if ($this->academicYear && $this->academicYear->end_date) {
+            return \Carbon\Carbon::parse($this->academicYear->end_date)->format('Y-m-d');
+        }
+        $base = $this->start_date ? \Carbon\Carbon::parse($this->start_date) : ($this->created_at ?: now());
+        return $base->copy()->addMonths(4)->endOfMonth()->format('Y-m-d');
+    }
 
     /**
      * Get the academic year that owns this term

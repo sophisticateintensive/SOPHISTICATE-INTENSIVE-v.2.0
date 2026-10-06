@@ -243,6 +243,51 @@
                 @enderror
             </div>
 
+            <!-- Semester Date Range -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label for="start_date" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                        Semester Start Date
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
+                            <i class="fas fa-calendar-day text-sm"></i>
+                        </div>
+                        <input type="date" name="start_date" id="start_date"
+                            value="{{ old('start_date') }}"
+                            class="input-glass @error('start_date') border-red-400 bg-red-500/5 @enderror">
+                    </div>
+                    @error('start_date')
+                        <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                            <i class="fas fa-exclamation-triangle"></i> {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+                <div class="space-y-2">
+                    <label for="end_date" class="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                        Semester End Date
+                        <span class="text-emerald-500 font-black">← Graduation Date</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
+                            <i class="fas fa-calendar-check text-sm"></i>
+                        </div>
+                        <input type="date" name="end_date" id="end_date"
+                            value="{{ old('end_date') }}"
+                            class="input-glass @error('end_date') border-red-400 bg-red-500/5 @enderror">
+                    </div>
+                    @error('end_date')
+                        <p class="text-red-500 text-xs mt-1 font-semibold flex items-center gap-1">
+                            <i class="fas fa-exclamation-triangle"></i> {{ $message }}
+                        </p>
+                    @enderror
+                    <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                        <i class="fas fa-info-circle"></i>
+                        All students enrolled in this term will share this graduation date.
+                    </p>
+                </div>
+            </div>
+
             <!-- Lock Status Toggle Switch -->
             <div class="p-4 rounded-2xl bg-[var(--bg-card-solid)] border border-[var(--border-color)] flex items-center justify-between">
                 <div class="space-y-0.5">

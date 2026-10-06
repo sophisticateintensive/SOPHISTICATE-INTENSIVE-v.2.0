@@ -143,6 +143,11 @@ class StudentController extends Controller
             'emergency_contact'    => $validated['emergency_contact'] ?? null,
         ]);
 
+        // Resolve semester end date automatically for graduation
+        $term = Term::find($validated['term_id']);
+        $semesterEndDate = $term ? $term->getSemesterEndDate() : now()->addMonths(4)->format('Y-m-d');
+        $graduationDate = !empty($validated['expected_graduation_date']) ? $validated['expected_graduation_date'] : $semesterEndDate;
+
         // Create enrollment record
         StudentEnrollment::create([
             'student_id'               => $student->id,
@@ -151,7 +156,7 @@ class StudentController extends Controller
             'programme'                => $validated['programme'],
             'status'                   => 'active',
             'enrollment_date'          => $validated['enrollment_date'],
-            'expected_graduation_date' => $validated['expected_graduation_date'],
+            'expected_graduation_date' => $graduationDate,
             'notes'                    => $validated['notes'],
         ]);
 

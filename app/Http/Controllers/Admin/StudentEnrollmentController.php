@@ -140,17 +140,7 @@ class StudentEnrollmentController extends Controller
     }
 
     /**
-     * Show enrollment details
-     */
-    public function show(StudentEnrollment $enrollment)
-    {
-        $enrollment->load(['student.user', 'academicYear', 'term']);
-
-        return view('admin.enrollments.show', compact('enrollment'));
-    }
-
-    /**
-     * Display the specified enrollment.
+     * Display the specified enrollment — redirects to edit form.
      */
     public function show(StudentEnrollment $enrollment)
     {
@@ -260,6 +250,12 @@ class StudentEnrollmentController extends Controller
                 ->with('error', "Cannot bulk enroll students into locked semester '{$term->term_name}'.");
         }
 
+        // Auto-resolve graduation date from semester end date
+        $semesterEndDate = $term ? $term->getSemesterEndDate() : now()->addMonths(4)->format('Y-m-d');
+        $graduationDate  = !empty($validated['expected_graduation_date'])
+            ? $validated['expected_graduation_date']
+            : $semesterEndDate;
+
         $successCount = 0;
         $failedCount = 0;
         $failedStudents = [];
@@ -272,14 +268,14 @@ class StudentEnrollmentController extends Controller
 
             if (!$existing) {
                 StudentEnrollment::create([
-                    'student_id' => $studentId,
-                    'academic_year_id' => $validated['academic_year_id'],
-                    'term_id' => $validated['term_id'],
-                    'programme' => $validated['programme'],
-                    'status' => 'active',
-                    'enrollment_date' => $validated['enrollment_date'],
-                    'expected_graduation_date' => $validated['expected_graduation_date'],
-                    'notes' => $validated['notes'],
+                    'student_id'               => $studentId,
+                    'academic_year_id'         => $validated['academic_year_id'],
+                    'term_id'                  => $validated['term_id'],
+                    'programme'                => $validated['programme'],
+                    'status'                   => 'active',
+                    'enrollment_date'          => $validated['enrollment_date'],
+                    'expected_graduation_date' => $graduationDate,
+                    'notes'                    => $validated['notes'],
                 ]);
                 $successCount++;
             } else {
