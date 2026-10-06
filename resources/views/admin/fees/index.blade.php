@@ -362,7 +362,7 @@
                                         <div class="flex items-center justify-end space-x-2">
                                             @if(!$fee->is_fully_paid)
                                                  <button type="button"
-                                                     onclick="openQuickPay({{ $fee->id }}, '{{ addslashes($fee->student->user->name ?? ''Student'') }}', {{ $fee->balance }}, '{{ addslashes($fee->type) }}')"
+                                                     onclick="openQuickPay({{ $fee->id }}, '{{ addslashes($fee->student->user->name ?: 'Student') }}', {{ $fee->balance }}, '{{ addslashes($fee->type) }}')"
                                                      class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all" title="Quick Pay">
                                                      <i class="fas fa-bolt text-sm"></i>
                                                  </button>
@@ -535,3 +535,4 @@ document.getElementById('quickPayModal').addEventListener('click', function(e) {
 });
 </script>
 @endpush
+
