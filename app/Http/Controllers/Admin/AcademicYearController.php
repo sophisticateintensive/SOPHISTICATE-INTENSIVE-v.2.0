@@ -39,6 +39,15 @@ class AcademicYearController extends BaseController
     }
 
     /**
+     * Display the specified academic year.
+     */
+    public function show(AcademicYear $academicYear)
+    {
+        $academicYear->load(['terms', 'studentEnrollments.student.user']);
+        return view('admin.academic-years.show', compact('academicYear'));
+    }
+
+    /**
      * Show the form for editing an academic year.
      */
     public function edit(AcademicYear $academicYear)

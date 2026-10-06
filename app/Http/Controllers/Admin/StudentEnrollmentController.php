@@ -150,6 +150,14 @@ class StudentEnrollmentController extends Controller
     }
 
     /**
+     * Display the specified enrollment.
+     */
+    public function show(StudentEnrollment $enrollment)
+    {
+        return redirect()->route('admin.enrollments.edit', $enrollment);
+    }
+
+    /**
      * Show form to edit enrollment
      */
     public function edit(StudentEnrollment $enrollment)

@@ -41,6 +41,15 @@ class SubjectController extends BaseController
     }
 
     /**
+     * Display the specified subject.
+     */
+    public function show(Subject $subject)
+    {
+        $subject->load(['students.user', 'resources']);
+        return view('admin.subjects.show', compact('subject'));
+    }
+
+    /**
      * Show the form for editing a subject.
      */
     public function edit(Subject $subject)

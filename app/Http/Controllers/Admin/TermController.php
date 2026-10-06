@@ -73,6 +73,14 @@ class TermController extends BaseController
     }
 
     /**
+     * Display the specified term.
+     */
+    public function show(Term $term)
+    {
+        return redirect()->route('admin.terms.index', ['academic_year' => $term->academic_year_id]);
+    }
+
+    /**
      * Show the form for editing a term.
      */
     public function edit(Term $term)
