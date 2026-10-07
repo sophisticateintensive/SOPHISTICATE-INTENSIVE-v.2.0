@@ -28,7 +28,7 @@ class ResetAdminPassword extends Command
             return self::FAILURE;
         }
 
-        $admin->update(['password' => Hash::make($password)]);
+        $admin->update(['password' => $password]);
 
         $this->info("✅ Password updated for admin: {$admin->email}");
 
