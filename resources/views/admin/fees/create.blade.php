@@ -66,15 +66,20 @@
                         <span>Candidate & Fee Categorization</span>
                     </h3>
 
-                    <!-- Student Select -->
+                    <!-- Student Select (Searchable) -->
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Select Student Candidate *</label>
-                        <select name="student_id" required
-                                class="w-full px-4 py-3 text-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-blue-500 shadow-sm text-[var(--text-primary)] cursor-pointer">
-                            <option value="">Select Candidate...</option>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+                            Select Student Candidate *
+                            <span class="text-[var(--text-muted)] normal-case font-normal ml-1">— type to search by name or reg number</span>
+                        </label>
+                        <select name="student_id" id="student-select" required placeholder="Search by name or reg number...">
+                            <option value="">Search student...</option>
                             @foreach($students as $student)
-                                <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
-                                    {{ $student->user->name ?? 'Student' }} &mdash; {{ $student->reg_number ?? 'REG-N/A' }} ({{ $student->programme ?? 'Regular' }})
+                                <option value="{{ $student->id }}"
+                                    data-reg="{{ $student->reg_number ?? '' }}"
+                                    data-programme="{{ $student->programme ?? '' }}"
+                                    {{ old('student_id') == $student->id ? 'selected' : '' }}>
+                                    {{ $student->user->name ?? 'Student' }} — {{ $student->reg_number ?? 'REG-N/A' }} ({{ $student->programme ?? 'Regular' }})
                                 </option>
                             @endforeach
                         </select>
@@ -208,6 +213,45 @@
 @endsection
 
 @push('scripts')
+{{-- Tom Select: lightweight searchable dropdown --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css">
+<style>
+    .ts-wrapper.single .ts-control {
+        background: var(--bg-card) !important;
+        border: 1.5px solid var(--border-color) !important;
+        border-radius: 0.75rem !important;
+        color: var(--text-primary) !important;
+        padding: 0.65rem 1rem !important;
+        font-size: 0.875rem !important;
+        box-shadow: none !important;
+        cursor: text !important;
+    }
+    .ts-wrapper.single.focus .ts-control {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.2) !important;
+    }
+    .ts-dropdown {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+        overflow: hidden !important;
+        margin-top: 4px !important;
+    }
+    .ts-dropdown .option {
+        color: var(--text-primary) !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+    .ts-dropdown .option:hover, .ts-dropdown .option.active {
+        background: rgba(59,130,246,0.1) !important;
+        color: #3b82f6 !important;
+    }
+    .ts-dropdown-content { max-height: 260px !important; }
+    .ts-control input { color: var(--text-primary) !important; }
+    .ts-wrapper .ts-control .item { color: var(--text-primary) !important; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     function feeCalculator() {
         return {
@@ -227,5 +271,25 @@
             }
         };
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        new TomSelect('#student-select', {
+            placeholder: 'Type a name or reg number...',
+            searchField: ['text'],
+            maxOptions: 200,
+            render: {
+                option: function(data, escape) {
+                    return '<div class="flex flex-col py-0.5">'
+                        + '<span class="font-semibold">' + escape(data.text.split('—')[0].trim()) + '</span>'
+                        + '<span class="text-xs opacity-60">' + escape(data.text.split('—')[1] ? data.text.split('—')[1].trim() : '') + '</span>'
+                        + '</div>';
+                },
+                item: function(data, escape) {
+                    return '<span>' + escape(data.text) + '</span>';
+                }
+            }
+        });
+    });
 </script>
 @endpush
+
