@@ -145,17 +145,16 @@ class BackupService
             $this->ensureSupabaseBucketExists();
 
             // Upload via Supabase Storage REST API
-            // POST /storage/v1/object/{bucket}/{path}
             $endpoint = "{$this->supabaseUrl}/storage/v1/object/{$this->supabaseBucket}/{$filename}";
 
-            $response = Http::withHeaders([
+            $response = Http::timeout(60)->withHeaders([
                 'apikey'        => $this->supabaseKey,
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Content-Type'  => $mimeType,
                 'x-upsert'      => 'true',
             ])->withBody($fileContent, $mimeType)->post($endpoint);
 
-            if ($response->successful()) {
+            if ($response->successful() || $response->status() === 200 || $response->status() === 201) {
                 $publicUrl = "{$this->supabaseUrl}/storage/v1/object/public/{$this->supabaseBucket}/{$filename}";
                 return [
                     'success' => true,
@@ -225,7 +224,7 @@ class BackupService
 
         try {
             $endpoint = "{$this->supabaseUrl}/storage/v1/bucket";
-            $res = Http::timeout(8)->withHeaders([
+            $res = Http::timeout(30)->withHeaders([
                 'apikey'        => $this->supabaseKey,
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
             ])->get($endpoint);
