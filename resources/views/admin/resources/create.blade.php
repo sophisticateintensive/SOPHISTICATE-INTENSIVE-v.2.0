@@ -182,7 +182,7 @@
             <!-- Upload specs -->
             <div class="w-full mt-6 pt-4 border-t border-[var(--border-color)] text-left text-xs text-[var(--text-muted)] flex items-center gap-2">
                 <i class="fas fa-shield-alt text-blue-500"></i>
-                <span>Max 10MB &bull; Automatic mime-type detection.</span>
+                <span>Max 50MB &bull; Automatic mime-type detection.</span>
             </div>
         </div>
 
@@ -247,7 +247,7 @@
                             Click to select a file from your computer
                         </p>
                         <p class="text-[11px] text-[var(--text-muted)] mt-1">
-                            PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), Zip, Images (Max: 10MB)
+                            PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), Zip, Images (Max: 50MB)
                         </p>
                     </div>
                     @error('file')

@@ -48,7 +48,7 @@ class ResourceController extends Controller
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'subject_id'   => 'nullable|exists:subjects,id',
-            'file'         => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,png,jpg,jpeg,webp|max:20480', // 20MB whitelist
+            'file'         => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,png,jpg,jpeg,webp|max:51200', // 50MB whitelist
             'for_students' => 'boolean',
             'description'  => 'nullable|string',
         ]);
@@ -134,7 +134,7 @@ class ResourceController extends Controller
             'subject_id'   => 'nullable|exists:subjects,id',
             'description'  => 'nullable|string',
             'for_students' => 'boolean',
-            'file'         => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,png,jpg,jpeg,webp|max:20480',
+            'file'         => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,png,jpg,jpeg,webp|max:51200',
         ]);
 
         $resource->title = $validated['title'];

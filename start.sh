@@ -101,7 +101,7 @@ php artisan route:cache  --no-ansi
 php artisan view:cache   --no-ansi
 
 # ──────────────────────────────────────────────────────────────
-# 7. Start server
+# 7. Start server with increased upload limits (100M)
 # ──────────────────────────────────────────────────────────────
 echo "Starting server on 0.0.0.0:${PORT:-8080}..."
-php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+php -d upload_max_filesize=100M -d post_max_size=100M -d memory_limit=512M -d max_execution_time=300 artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
