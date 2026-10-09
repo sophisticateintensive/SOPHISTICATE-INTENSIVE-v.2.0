@@ -112,6 +112,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Resources
     Route::get('/resources/{resource}/download', [App\Http\Controllers\Admin\ResourceController::class, 'download'])->name('resources.download');
+    Route::get('/resources/{resource}/stream', [App\Http\Controllers\Admin\ResourceController::class, 'stream'])->name('resources.stream');
     Route::resource('resources', App\Http\Controllers\Admin\ResourceController::class);
 
     // Enrollments

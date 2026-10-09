@@ -187,9 +187,9 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <p class="font-bold text-sm text-[var(--text-primary)] hover:text-blue-600 transition">
+                                                <a href="{{ route('admin.resources.show', $res) }}" class="font-bold text-sm text-[var(--text-primary)] hover:text-blue-500 transition">
                                                     {{ $res->title }}
-                                                </p>
+                                                </a>
                                                 @if($res->description)
                                                     <p class="text-xs text-[var(--text-secondary)] line-clamp-1 max-w-sm">{{ $res->description }}</p>
                                                 @endif
@@ -214,6 +214,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
                                         <div class="flex items-center justify-end space-x-2">
+                                            <a href="{{ route('admin.resources.show', $res) }}" class="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all" title="Preview Document">
+                                                <i class="fas fa-eye w-4 h-4 text-xs flex items-center justify-center"></i>
+                                            </a>
                                             <a href="{{ route('admin.resources.download', $res) }}" class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all" title="Download Resource">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>

@@ -8,11 +8,8 @@
     <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
 
-    <title>{{ $resource->title }} · Resource Vault</title>
+    <title>{{ $resource->title }} · Admin Document Inspector</title>
 
     <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,10 +49,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <style>
-        /* Disable print */
-        @media print {
-            body { display: none !important; }
-        }
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0c0d12; }
@@ -68,12 +61,7 @@
             box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
             border-radius: 6px;
             background-color: #ffffff;
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
-
-        .theme-dark .pdf-page-wrapper { background-color: #1e1e24; }
-        .theme-sepia .pdf-page-wrapper { background-color: #fbf0d9; }
-        .theme-white .pdf-page-wrapper { background-color: #ffffff; }
 
         .pdf-page-canvas {
             display: block;
@@ -82,18 +70,6 @@
             height: auto;
         }
 
-        .page-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #71717a;
-            font-family: 'Space Grotesk', monospace;
-            font-size: 0.8rem;
-            background: #181924;
-            border-radius: 6px;
-        }
-
-        /* Glass pill */
         .glass-btn {
             background: rgba(27, 30, 42, 0.85);
             border: 1px solid rgba(40, 44, 63, 0.9);
@@ -112,49 +88,47 @@
         }
     </style>
 </head>
-<body class="bg-vault-bg text-zinc-100 min-h-screen flex flex-col font-sans overflow-hidden" oncontextmenu="return false;">
+<body class="bg-vault-bg text-zinc-100 min-h-screen flex flex-col font-sans overflow-hidden">
 
     @php
         $ext = strtolower(pathinfo($resource->file_path, PATHINFO_EXTENSION));
         $isPdf = ($ext === 'pdf' || str_contains($resource->file_type ?? '', 'pdf'));
         $isImage = in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg']);
         $isOffice = in_array($ext, ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']);
-        $isText = in_array($ext, ['txt', 'csv', 'log', 'json', 'md']);
-        $streamUrl = route('student.resources.stream', $resource);
+        $streamUrl = route('resources.stream', $resource);
     @endphp
 
-    <!-- ========== TOP NAVIGATION & CONTROLS TOOLBAR ========== -->
+    <!-- Top Navigation Toolbar -->
     <header class="h-16 bg-vault-panel/95 backdrop-blur-md border-b border-vault-border flex items-center justify-between px-3 sm:px-6 z-30 flex-shrink-0 shadow-xl">
-        <!-- Left: Back & Document Metadata -->
-        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-            <a href="{{ route('student.resources.index') }}"
+        <!-- Left: Back & Title -->
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{{ route('admin.resources.index') }}"
                class="px-3 py-2 rounded-xl glass-btn text-xs font-bold flex items-center gap-1.5 flex-shrink-0">
                 <i class="fas fa-arrow-left text-[11px]"></i>
-                <span class="hidden sm:inline">Back</span>
+                <span class="hidden sm:inline">Admin Resources</span>
             </a>
 
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xs sm:text-sm font-bold text-white truncate max-w-[140px] sm:max-w-xs md:max-w-md" title="{{ $resource->title }}">
+                    <h1 class="text-xs sm:text-sm font-bold text-white truncate max-w-xs sm:max-w-md" title="{{ $resource->title }}">
                         {{ $resource->title }}
                     </h1>
                     @if($resource->subject)
-                        <span class="hidden xs:inline-flex px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 flex-shrink-0">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex-shrink-0">
                             {{ $resource->subject->code }}
                         </span>
                     @endif
                 </div>
                 <p class="text-[10px] text-zinc-400 truncate hidden md:block">
-                    {{ $resource->file_name }} &bull; {{ number_format($resource->file_size / (1024 * 1024), 2) }} MB
+                    {{ $resource->file_name }} &bull; {{ number_format($resource->file_size / (1024 * 1024), 2) }} MB &bull; Uploaded by {{ $resource->uploadedBy->name ?? 'Admin' }}
                 </p>
             </div>
         </div>
 
-        <!-- Center: Interactive Controls (PDF only) -->
+        <!-- Center: Controls (PDF) -->
         @if($isPdf)
         <div class="hidden lg:flex items-center gap-1.5 bg-vault-card/90 px-3 py-1.5 rounded-2xl border border-vault-border font-mono text-xs shadow-inner" id="interactiveToolbar">
-            <!-- Page Nav -->
-            <button id="prevPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Previous Page (Left Arrow)">
+            <button id="prevPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Previous Page">
                 <i class="fas fa-chevron-left text-[11px]"></i>
             </button>
 
@@ -164,30 +138,28 @@
                 <span class="text-zinc-400">/ <span id="pageCountDisplay">--</span></span>
             </div>
 
-            <button id="nextPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Next Page (Right Arrow)">
+            <button id="nextPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Next Page">
                 <i class="fas fa-chevron-right text-[11px]"></i>
             </button>
 
             <div class="h-4 w-px bg-vault-border mx-1"></div>
 
-            <!-- Zoom Controls -->
-            <button id="zoomOutBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Zoom Out (-)">
+            <button id="zoomOutBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Zoom Out">
                 <i class="fas fa-minus text-[11px]"></i>
             </button>
 
             <span id="zoomLevelDisplay" class="text-zinc-200 min-w-[50px] text-center font-bold text-[11px]">100%</span>
 
-            <button id="zoomInBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Zoom In (+)">
+            <button id="zoomInBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Zoom In">
                 <i class="fas fa-plus text-[11px]"></i>
             </button>
 
-            <button id="fitWidthBtn" class="px-2.5 py-1 rounded-lg hover:bg-zinc-700/60 text-zinc-300 text-[11px] font-sans font-semibold transition" title="Fit to Width (0)">
+            <button id="fitWidthBtn" class="px-2.5 py-1 rounded-lg hover:bg-zinc-700/60 text-zinc-300 text-[11px] font-sans font-semibold transition" title="Fit to Width">
                 Fit Width
             </button>
 
             <div class="h-4 w-px bg-vault-border mx-1"></div>
 
-            <!-- View Mode Toggle: Continuous vs Single Page -->
             <button id="scrollModeBtn" class="p-1.5 px-2.5 rounded-lg glass-btn text-[11px] font-sans font-semibold active flex items-center gap-1" title="Continuous Scroll">
                 <i class="fas fa-scroll text-[10px]"></i>
                 <span>Scroll</span>
@@ -198,69 +170,58 @@
                 <span>Page</span>
             </button>
 
-            <button id="rotateBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Rotate Clockwise (R)">
+            <button id="rotateBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 transition" title="Rotate Clockwise">
                 <i class="fas fa-rotate-right text-[11px]"></i>
             </button>
         </div>
         @endif
 
-        <!-- Right: Actions, Fullscreen, Engine Switcher & Download -->
+        <!-- Right: Engine & Download Actions -->
         <div class="flex items-center gap-2 flex-shrink-0">
             @if($isPdf)
-                <!-- Engine switcher: Canvas vs Native Browser PDF -->
                 <button id="engineToggleBtn"
                         class="px-3 py-1.5 rounded-xl glass-btn text-xs font-bold flex items-center gap-1.5"
-                        title="Switch rendering engine between Canvas Reader and Native Browser PDF Viewer">
+                        title="Toggle between Canvas and Native Browser Viewer">
                     <i class="fas fa-sliders text-[11px] text-blue-400"></i>
                     <span id="engineLabel" class="hidden sm:inline">Native Mode</span>
                 </button>
 
-                <!-- Fullscreen Toggle -->
-                <button id="fullscreenBtn" class="p-2 rounded-xl glass-btn text-xs" title="Toggle Fullscreen (F)">
+                <button id="fullscreenBtn" class="p-2 rounded-xl glass-btn text-xs" title="Toggle Fullscreen">
                     <i class="fas fa-expand"></i>
                 </button>
             @endif
 
-            @if($canDownload)
-                <a href="{{ route('student.resources.download', $resource) }}"
-                   class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-lg shadow-blue-500/20"
-                   title="Download Original Document">
-                    <i class="fas fa-download text-[11px]"></i>
-                    <span class="hidden sm:inline">Download</span>
-                </a>
-            @else
-                <div class="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs flex items-center gap-1.5"
-                     title="Pay at least 50% of term fees to unlock offline downloads">
-                    <i class="fas fa-lock text-[10px]"></i>
-                    <span class="hidden sm:inline">Locked (&lt;50% Paid)</span>
-                </div>
-            @endif
+            <a href="{{ route('resources.edit', $resource) }}"
+               class="px-3 py-1.5 rounded-xl glass-btn text-xs font-bold flex items-center gap-1.5 text-blue-400">
+                <i class="fas fa-edit text-[11px]"></i>
+                <span class="hidden sm:inline">Edit</span>
+            </a>
+
+            <a href="{{ route('resources.download', $resource) }}"
+               class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-lg shadow-blue-500/20">
+                <i class="fas fa-download text-[11px]"></i>
+                <span class="hidden sm:inline">Download</span>
+            </a>
         </div>
     </header>
 
-    <!-- ========== MAIN READER VIEWPORT ========== -->
+    <!-- Main Viewport -->
     <main class="flex-1 relative overflow-auto flex justify-center bg-vault-bg" id="viewerContainer">
-
-        <!-- Loading Spinner -->
         <div id="loadingIndicator" class="absolute inset-0 flex flex-col items-center justify-center bg-vault-bg/95 z-20 transition-opacity duration-300">
             <div class="w-12 h-12 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
             <p class="text-xs font-mono font-bold tracking-wider text-zinc-300 uppercase">Rendering Document...</p>
-            <p class="text-[11px] text-zinc-500 mt-1">Preparing high-resolution view</p>
         </div>
 
         @if($isPdf)
-            <!-- Canvas Reader Mode Container -->
             <div id="interactiveViewerWrapper" class="w-full flex flex-col items-center py-6 px-2 sm:px-6">
                 <div id="pdfPagesContainer" class="flex flex-col items-center w-full max-w-5xl transition-transform origin-top"></div>
             </div>
 
-            <!-- Native Browser Engine Mode Container (Initially Hidden) -->
             <div id="nativeViewerWrapper" class="hidden w-full h-full p-2 sm:p-4">
                 <iframe id="nativePdfIframe" src="" class="w-full h-full rounded-2xl border border-vault-border shadow-2xl bg-zinc-900" frameborder="0"></iframe>
             </div>
 
         @elseif($isImage)
-            <!-- Image Viewer with Zoom & Pan -->
             <div class="flex flex-col items-center justify-center max-w-5xl w-full p-4 my-auto">
                 <img src="{{ $streamUrl }}"
                      alt="{{ $resource->title }}"
@@ -269,10 +230,9 @@
             </div>
 
         @elseif($isOffice)
-            <!-- Office Document Viewer (Word / Excel / PowerPoint) -->
             <div class="w-full h-full max-w-5xl p-4 sm:p-6 my-auto flex flex-col items-center justify-center">
                 <div class="w-full max-w-2xl bg-vault-card rounded-3xl border border-vault-border p-6 sm:p-8 text-center space-y-6 shadow-2xl">
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-3xl text-blue-400 mx-auto shadow-inner">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-3xl text-blue-400 mx-auto">
                         @if(in_array($ext, ['doc', 'docx']))
                             <i class="fas fa-file-word text-blue-500"></i>
                         @elseif(in_array($ext, ['ppt', 'pptx']))
@@ -299,66 +259,35 @@
                         </div>
                     @endif
 
-                    <!-- Action buttons -->
-                    <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-                        @if($canDownload)
-                            <a href="{{ route('student.resources.download', $resource) }}"
-                               class="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-sm transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                                <i class="fas fa-download"></i>
-                                <span>Download to View in {{ strtoupper($ext) }} Editor</span>
-                            </a>
-                        @else
-                            <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold">
-                                <i class="fas fa-lock mr-1.5"></i> Offline download unlocks when 50% of semester tuition is cleared.
-                            </div>
-                        @endif
+                    <div class="flex items-center justify-center gap-3 pt-2">
+                        <a href="{{ route('resources.download', $resource) }}"
+                           class="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-sm transition flex items-center gap-2 shadow-lg">
+                            <i class="fas fa-download"></i>
+                            <span>Download {{ strtoupper($ext) }} File</span>
+                        </a>
                     </div>
                 </div>
             </div>
             <script>document.getElementById('loadingIndicator').classList.add('hidden');</script>
 
         @else
-            <!-- Generic / Text / Other File Formats -->
             <div class="my-auto max-w-md p-8 text-center bg-vault-card rounded-3xl border border-vault-border space-y-5 shadow-2xl">
-                <div class="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl mx-auto border border-blue-500/20">
+                <div class="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl mx-auto">
                     <i class="fas fa-file-lines"></i>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-white">{{ $resource->title }}</h3>
                     <p class="text-xs text-zinc-400 mt-1 font-mono">{{ $resource->file_name }}</p>
                 </div>
-                @if($canDownload)
-                    <a href="{{ route('student.resources.download', $resource) }}"
-                       class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs transition">
-                        <i class="fas fa-download"></i> Download File
-                    </a>
-                @endif
+                <a href="{{ route('resources.download', $resource) }}"
+                   class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 text-white font-bold text-xs transition">
+                    <i class="fas fa-download"></i> Download File
+                </a>
             </div>
             <script>document.getElementById('loadingIndicator').classList.add('hidden');</script>
         @endif
-
     </main>
 
-    <!-- Mobile Bottom Quick Navigation Bar (PDF only) -->
-    @if($isPdf)
-    <div class="lg:hidden h-14 bg-vault-panel/95 backdrop-blur-md border-t border-vault-border flex items-center justify-between px-4 z-30 flex-shrink-0 font-mono text-xs">
-        <button id="mobilePrevBtn" class="p-2 px-3 rounded-xl glass-btn font-bold flex items-center gap-1">
-            <i class="fas fa-chevron-left"></i>
-            <span>Prev</span>
-        </button>
-
-        <span class="text-zinc-300 text-xs font-bold">
-            <span id="mobilePageNum">1</span> / <span id="mobilePageTotal">--</span>
-        </span>
-
-        <button id="mobileNextBtn" class="p-2 px-3 rounded-xl glass-btn font-bold flex items-center gap-1">
-            <span>Next</span>
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-    @endif
-
-    <!-- ========== PDF.JS INTERACTIVE SCRIPT ENGINE ========== -->
     @if($isPdf)
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -368,8 +297,8 @@
         let currentScale = 1.25;
         let currentRotation = 0;
         let currentPageNum = 1;
-        let viewMode = 'scroll'; // 'scroll' or 'single'
-        let currentEngine = 'interactive'; // 'interactive' or 'native'
+        let viewMode = 'scroll';
+        let currentEngine = 'interactive';
         const renderedPages = new Set();
         const pageViewports = new Map();
 
@@ -380,7 +309,6 @@
         const zoomLevelDisplay = document.getElementById('zoomLevelDisplay');
         const viewerContainer = document.getElementById('viewerContainer');
 
-        // Fetch PDF
         const loadingTask = pdfjsLib.getDocument({
             url: streamUrl,
             withCredentials: true,
@@ -391,24 +319,18 @@
         loadingTask.promise.then(pdf => {
             pdfDoc = pdf;
             pageCountDisplay.textContent = pdf.numPages;
-            if (document.getElementById('mobilePageTotal')) {
-                document.getElementById('mobilePageTotal').textContent = pdf.numPages;
-            }
             loadingIndicator.classList.add('hidden');
 
-            // Auto fit to container width on mobile
             if (window.innerWidth < 768) {
                 fitToWidth();
             } else {
                 initPagePlaceholders();
             }
         }).catch(err => {
-            console.error('PDF.js loading failed, switching to native browser viewer:', err);
-            // Fallback automatically to native PDF reader
+            console.error('PDF.js loading failed, switching to native viewer:', err);
             switchToNativeEngine();
         });
 
-        // Initialize placeholders with progressive rendering
         function initPagePlaceholders() {
             if (!pdfDoc) return;
             container.innerHTML = '';
@@ -448,7 +370,6 @@
             });
         }
 
-        // Lazy progressive page renderer
         let observer = null;
         function setupIntersectionObserver() {
             if (observer) observer.disconnect();
@@ -519,12 +440,8 @@
         function updateCurrentPageDisplay(num) {
             currentPageNum = num;
             if (pageNumInput) pageNumInput.value = num;
-            if (document.getElementById('mobilePageNum')) {
-                document.getElementById('mobilePageNum').textContent = num;
-            }
         }
 
-        // Fit to Width
         function fitToWidth() {
             if (!pdfDoc) return;
             pdfDoc.getPage(1).then(page => {
@@ -535,7 +452,6 @@
             });
         }
 
-        // Zoom Controls
         document.getElementById('zoomInBtn')?.addEventListener('click', () => {
             if (currentScale < 3.0) {
                 currentScale = Math.min(3.0, currentScale + 0.25);
@@ -552,13 +468,11 @@
 
         document.getElementById('fitWidthBtn')?.addEventListener('click', fitToWidth);
 
-        // Rotate
         document.getElementById('rotateBtn')?.addEventListener('click', () => {
             currentRotation = (currentRotation + 90) % 360;
             initPagePlaceholders();
         });
 
-        // Page Navigation
         function goToPage(targetNum) {
             if (!pdfDoc) return;
             targetNum = Math.max(1, Math.min(pdfDoc.numPages, targetNum));
@@ -582,15 +496,12 @@
 
         document.getElementById('prevPageBtn')?.addEventListener('click', () => goToPage(currentPageNum - 1));
         document.getElementById('nextPageBtn')?.addEventListener('click', () => goToPage(currentPageNum + 1));
-        document.getElementById('mobilePrevBtn')?.addEventListener('click', () => goToPage(currentPageNum - 1));
-        document.getElementById('mobileNextBtn')?.addEventListener('click', () => goToPage(currentPageNum + 1));
 
         pageNumInput?.addEventListener('change', (e) => {
             const val = parseInt(e.target.value);
             if (!isNaN(val)) goToPage(val);
         });
 
-        // Mode Switching: Scroll vs Single Page
         const scrollBtn = document.getElementById('scrollModeBtn');
         const singleBtn = document.getElementById('singlePageModeBtn');
 
@@ -608,7 +519,6 @@
             initPagePlaceholders();
         });
 
-        // Engine Toggle: Canvas Interactive vs Native Browser Engine
         const engineToggleBtn = document.getElementById('engineToggleBtn');
         const engineLabel = document.getElementById('engineLabel');
         const interactiveWrapper = document.getElementById('interactiveViewerWrapper');
@@ -644,33 +554,11 @@
             }
         });
 
-        // Fullscreen Mode
         document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
             } else {
                 document.exitFullscreen().catch(() => {});
-            }
-        });
-
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
-
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-                goToPage(currentPageNum + 1);
-            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-                goToPage(currentPageNum - 1);
-            } else if (e.key === '+' || e.key === '=') {
-                document.getElementById('zoomInBtn')?.click();
-            } else if (e.key === '-') {
-                document.getElementById('zoomOutBtn')?.click();
-            } else if (e.key === '0') {
-                fitToWidth();
-            } else if (e.key === 'f' || e.key === 'F') {
-                document.getElementById('fullscreenBtn')?.click();
-            } else if (e.key === 'r' || e.key === 'R') {
-                document.getElementById('rotateBtn')?.click();
             }
         });
     </script>

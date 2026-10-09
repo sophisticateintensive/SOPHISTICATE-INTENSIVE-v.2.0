@@ -118,7 +118,28 @@ class ResourceController extends Controller
     public function show(Resource $resource)
     {
         $resource->load(['subject', 'uploadedBy']);
-        return view('admin.resources.show', compact('resource'));
+        $canDownload = true;
+        return view('admin.resources.show', compact('resource', 'canDownload'));
+    }
+
+    /**
+     * Binary data stream endpoint for in-browser viewing by admins.
+     */
+    public function stream(Resource $resource)
+    {
+        if (!$resource->fileExists()) {
+            abort(404, 'File not found on storage.');
+        }
+
+        $fullPath = Storage::disk('local')->path($resource->file_path);
+        $mimeType = $resource->file_type ?: (file_exists($fullPath) ? mime_content_type($fullPath) : 'application/pdf');
+
+        return response()->file($fullPath, [
+            'Content-Type'           => $mimeType,
+            'Content-Disposition'    => 'inline; filename="' . $resource->file_name . '"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control'          => 'private, no-cache, no-store, must-revalidate',
+        ]);
     }
 
     public function edit(Resource $resource)
