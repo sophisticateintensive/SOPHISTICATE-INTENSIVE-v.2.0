@@ -8,7 +8,7 @@
  * - Only safe static assets (CSS, JS, Fonts, Icons, Fallback UI) are cached.
  */
 
-const CACHE_NAME = 'sophisticate-pwa-v2';
+const CACHE_NAME = 'sophisticate-pwa-v2.1';
 
 // Static assets safely precached for fast offline shell loading
 const PRECACHE_ASSETS = [
