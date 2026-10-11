@@ -336,25 +336,14 @@
                     </span>
 
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        {{-- VIEW BUTTON (Opens inside portal modal) --}}
+                        {{-- VIEW BUTTON (Opens full dedicated viewer) --}}
                         @if($canView)
-                            <button type="button"
-                                    @click="openReader({
-                                        id: {{ $resource->id }},
-                                        title: '{{ addslashes($resource->title) }}',
-                                        fileName: '{{ addslashes($resource->file_name) }}',
-                                        ext: '{{ $ext }}',
-                                        isPdf: {{ $isPdf ? 'true' : 'false' }},
-                                        isImage: {{ $isImage ? 'true' : 'false' }},
-                                        subjectCode: '{{ $resource->subject->code ?? '' }}',
-                                        streamUrl: '{{ route('student.resources.stream', $resource) }}',
-                                        downloadUrl: '{{ route('student.resources.download', $resource) }}'
-                                    })"
-                                    class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-black hover:scale-105 hover:border-cyan-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition flex items-center gap-1.5 text-xs"
-                                    title="View inside portal">
+                            <a href="{{ route('student.resources.view', $resource) }}"
+                               class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-black hover:scale-105 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1.5 text-xs shadow-sm"
+                               title="View document">
                                 <i class="fas fa-eye text-[10px]"></i>
                                 <span>View</span>
-                            </button>
+                            </a>
                         @else
                             <span class="px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-red-500/70 border border-zinc-200 dark:border-zinc-700 font-bold flex items-center gap-1 text-[11px] cursor-not-allowed opacity-60"
                                   title="Make an initial fee payment to view online">

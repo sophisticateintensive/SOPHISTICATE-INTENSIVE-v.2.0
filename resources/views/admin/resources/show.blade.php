@@ -61,13 +61,20 @@
             box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
             border-radius: 6px;
             background-color: #ffffff;
+            max-width: 100% !important;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .pdf-page-canvas {
             display: block;
             border-radius: 6px;
-            max-width: 100%;
-            height: auto;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
         }
 
         .glass-btn {
@@ -321,11 +328,8 @@
             pageCountDisplay.textContent = pdf.numPages;
             loadingIndicator.classList.add('hidden');
 
-            if (window.innerWidth < 768) {
-                fitToWidth();
-            } else {
-                initPagePlaceholders();
-            }
+            // Auto fit to container width to guarantee natural aspect ratio
+            fitToWidth();
         }).catch(err => {
             console.error('PDF.js loading failed, switching to native viewer:', err);
             switchToNativeEngine();
@@ -412,11 +416,12 @@
                 const outputScale = window.devicePixelRatio || 1;
                 canvas.width = Math.floor(viewport.width * outputScale);
                 canvas.height = Math.floor(viewport.height * outputScale);
-                canvas.style.width = Math.floor(viewport.width) + 'px';
-                canvas.style.height = Math.floor(viewport.height) + 'px';
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
 
                 wrapper.style.width = Math.floor(viewport.width) + 'px';
-                wrapper.style.height = Math.floor(viewport.height) + 'px';
+                wrapper.style.maxWidth = '100%';
+                wrapper.style.height = 'auto';
 
                 wrapper.innerHTML = '';
                 wrapper.appendChild(canvas);
@@ -446,8 +451,12 @@
             if (!pdfDoc) return;
             pdfDoc.getPage(1).then(page => {
                 const unscaled = page.getViewport({ scale: 1.0, rotation: currentRotation });
-                const availableWidth = viewerContainer.clientWidth - (window.innerWidth < 768 ? 20 : 60);
-                currentScale = Math.max(0.4, Math.min(3.0, availableWidth / unscaled.width));
+                const containerWidth = (viewerContainer && viewerContainer.clientWidth > 0)
+                    ? viewerContainer.clientWidth
+                    : window.innerWidth;
+                const padding = window.innerWidth < 768 ? 20 : 64;
+                const availableWidth = Math.max(260, containerWidth - padding);
+                currentScale = Math.max(0.3, Math.min(3.0, availableWidth / unscaled.width));
                 initPagePlaceholders();
             });
         }
