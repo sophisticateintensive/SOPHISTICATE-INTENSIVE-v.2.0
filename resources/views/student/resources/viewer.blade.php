@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark h-full">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon & Icons -->
@@ -50,32 +50,60 @@
 
     <style>
         @media print { body { display: none !important; } }
+
+        /* Custom smooth scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0c0d12; }
         ::-webkit-scrollbar-thumb { background: #282c3f; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3b425b; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
 
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0c0d12;
+        }
+
+        /* Responsive PDF Page Container */
         .pdf-page-wrapper {
             position: relative;
-            margin-bottom: 20px;
-            box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
             border-radius: 6px;
-            background-color: #ffffff;
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
-            max-width: 100% !important;
+            background-color: #171923;
             box-sizing: border-box;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: pan-y;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
 
+        /* Canvas inside page wrapper */
         .pdf-page-canvas {
             display: block;
             border-radius: 6px;
             width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
+            height: 100% !important;
+            object-fit: contain;
+            background-color: #ffffff;
+            pointer-events: none; /* Let touch gestures scroll container naturally */
+        }
+
+        /* Skeleton placeholder while page renders */
+        .pdf-skeleton {
+            background: linear-gradient(135deg, #171923 25%, #1e2230 50%, #171923 75%);
+            background-size: 200% 200%;
+            animation: skeleton-shimmer 2s infinite ease-in-out;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
         }
 
         .glass-btn {
@@ -95,14 +123,14 @@
             border-color: rgba(59, 130, 246, 0.6);
         }
 
-        /* Responsive image container */
+        /* Image pan-zoom */
         .zoomable-image {
             transition: transform 0.2s ease-out;
             transform-origin: center center;
         }
     </style>
 </head>
-<body class="bg-vault-bg text-zinc-100 min-h-screen flex flex-col font-sans overflow-hidden select-none" oncontextmenu="return false;">
+<body class="bg-vault-bg text-zinc-100 h-full h-[100dvh] flex flex-col font-sans overflow-hidden select-none" oncontextmenu="return false;">
 
     @php
         $ext = strtolower(pathinfo($resource->file_path, PATHINFO_EXTENSION));
@@ -119,14 +147,14 @@
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
             <a href="{{ route('student.resources.index') }}"
                class="p-2 sm:px-3 sm:py-2 rounded-xl glass-btn text-xs font-bold flex items-center gap-1.5 flex-shrink-0"
-               title="Back to Resources">
+               title="Back to Learning Vault">
                 <i class="fas fa-arrow-left text-[12px]"></i>
                 <span class="hidden md:inline">Back</span>
             </a>
 
             <div class="min-w-0">
                 <div class="flex items-center gap-1.5 sm:gap-2">
-                    <h1 class="text-xs sm:text-sm font-bold text-white truncate max-w-[120px] xs:max-w-[160px] sm:max-w-xs md:max-w-md" title="{{ $resource->title }}">
+                    <h1 class="text-xs sm:text-sm font-bold text-white truncate max-w-[130px] xs:max-w-[170px] sm:max-w-xs md:max-w-md" title="{{ $resource->title }}">
                         {{ $resource->title }}
                     </h1>
                     @if($resource->subject)
@@ -148,7 +176,7 @@
         <div class="hidden lg:flex items-center gap-1.5 bg-vault-card/90 px-3 py-1.5 rounded-2xl border border-vault-border font-mono text-xs shadow-inner">
             @if($isPdf)
                 <!-- PDF Page Nav -->
-                <button id="prevPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Previous Page">
+                <button id="prevPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Previous Page (Left Arrow)">
                     <i class="fas fa-chevron-left text-[11px]"></i>
                 </button>
 
@@ -158,7 +186,7 @@
                     <span class="text-zinc-400">/ <span id="pageCountDisplay">--</span></span>
                 </div>
 
-                <button id="nextPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Next Page">
+                <button id="nextPageBtn" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700/60 text-zinc-300 disabled:opacity-30 transition" title="Next Page (Right Arrow)">
                     <i class="fas fa-chevron-right text-[11px]"></i>
                 </button>
 
@@ -175,14 +203,14 @@
                     <i class="fas fa-plus text-[11px]"></i>
                 </button>
 
-                <button id="fitWidthBtn" class="px-2.5 py-1 rounded-lg hover:bg-zinc-700/60 text-zinc-300 text-[11px] font-sans font-semibold transition" title="Fit to Width">
+                <button id="fitWidthBtn" class="px-2.5 py-1 rounded-lg hover:bg-zinc-700/60 text-zinc-300 text-[11px] font-sans font-semibold transition" title="Fit to Screen Width (F)">
                     Fit Width
                 </button>
 
                 <div class="h-4 w-px bg-vault-border mx-1"></div>
 
                 <!-- PDF View Mode Toggle -->
-                <button id="scrollModeBtn" class="p-1.5 px-2.5 rounded-lg glass-btn text-[11px] font-sans font-semibold active flex items-center gap-1" title="Continuous Scroll">
+                <button id="scrollModeBtn" class="p-1.5 px-2.5 rounded-lg glass-btn text-[11px] font-sans font-semibold active flex items-center gap-1" title="Continuous Vertical Scroll">
                     <i class="fas fa-scroll text-[10px]"></i>
                     <span>Scroll</span>
                 </button>
@@ -198,26 +226,32 @@
 
             @elseif($isImage)
                 <!-- Image Controls -->
-                <button onclick="zoomImage(-0.25)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Zoom Out">
+                <button onclick="zoomImage(-0.25)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Zoom Out (-)">
                     <i class="fas fa-minus text-[11px]"></i>
                 </button>
                 <span id="imgZoomDisplay" class="text-zinc-200 min-w-[50px] text-center font-bold text-[11px]">100%</span>
-                <button onclick="zoomImage(0.25)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Zoom In">
+                <button onclick="zoomImage(0.25)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Zoom In (+)">
                     <i class="fas fa-plus text-[11px]"></i>
                 </button>
                 <button onclick="resetImageZoom()" class="px-2.5 py-1 rounded-lg hover:bg-zinc-700 text-zinc-300 text-[11px] font-sans font-semibold">
                     Reset
                 </button>
-                <button onclick="rotateImage()" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Rotate 90°">
+                <button onclick="rotateImage()" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Rotate 90° (R)">
                     <i class="fas fa-rotate-right text-[11px]"></i>
                 </button>
 
             @elseif($isOffice)
-                <!-- Office Document View Modes -->
                 <span class="text-zinc-400 text-xs flex items-center gap-2">
                     <i class="fas fa-info-circle text-blue-400"></i>
-                    <span>Office Presentation & Document Viewer</span>
+                    <span>Cloud Office Presentation & Document Viewer</span>
                 </span>
+            @elseif($isText)
+                <button onclick="changeFontSize(-1)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Decrease Font">
+                    A-
+                </button>
+                <button onclick="changeFontSize(1)" class="p-1.5 px-2 rounded-lg hover:bg-zinc-700 text-zinc-300" title="Increase Font">
+                    A+
+                </button>
             @endif
         </div>
 
@@ -227,7 +261,7 @@
                 <!-- Engine switcher: Canvas vs Native Browser PDF -->
                 <button id="engineToggleBtn"
                         class="px-2.5 py-1.5 rounded-xl glass-btn text-xs font-bold flex items-center gap-1.5"
-                        title="Switch between Canvas Reader and Native PDF Viewer">
+                        title="Switch between Interactive Canvas and Native PDF Reader">
                     <i class="fas fa-sliders text-[11px] text-blue-400"></i>
                     <span id="engineLabel" class="hidden sm:inline">Native Mode</span>
                 </button>
@@ -256,8 +290,10 @@
         </div>
     </header>
 
-    <!-- ========== MAIN DOCUMENT VIEWPORT ========== -->
-    <main class="flex-1 relative overflow-auto flex justify-center bg-vault-bg" id="viewerContainer">
+    <!-- ========== MAIN DOCUMENT VIEWPORT (Guaranteed Touch Scrolling) ========== -->
+    <main class="flex-1 min-h-0 w-full relative overflow-y-auto overflow-x-hidden flex flex-col items-center bg-vault-bg"
+          id="viewerContainer"
+          style="-webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior-y: contain;">
 
         <!-- Universal Loading Spinner -->
         <div id="loadingIndicator" class="absolute inset-0 flex flex-col items-center justify-center bg-vault-bg/95 z-20 transition-opacity duration-300">
@@ -267,19 +303,19 @@
 
         @if($isPdf)
             <!-- PDF Canvas Interactive Reader -->
-            <div id="interactiveViewerWrapper" class="w-full flex flex-col items-center py-4 sm:py-6 px-2 sm:px-6 pb-20 lg:pb-6">
+            <div id="interactiveViewerWrapper" class="w-full flex flex-col items-center py-4 sm:py-6 px-2 sm:px-6 pb-28 sm:pb-24">
                 <div id="pdfPagesContainer" class="flex flex-col items-center w-full max-w-5xl transition-transform origin-top"></div>
             </div>
 
             <!-- Native Browser Engine (Fallback / Switch) -->
-            <div id="nativeViewerWrapper" class="hidden w-full h-full p-2 sm:p-4 pb-20 lg:pb-4">
+            <div id="nativeViewerWrapper" class="hidden w-full h-full p-2 sm:p-4 pb-28 sm:pb-24 flex-1">
                 <iframe id="nativePdfIframe" src="" class="w-full h-full rounded-2xl border border-vault-border shadow-2xl bg-zinc-900" frameborder="0"></iframe>
             </div>
 
         @elseif($isImage)
             <!-- Image Viewer with Interactive Pan & Zoom -->
-            <div class="w-full h-full flex flex-col items-center justify-center p-4 overflow-auto pb-20 lg:pb-4">
-                <div class="overflow-hidden flex items-center justify-center max-w-full max-h-full">
+            <div class="w-full min-h-full flex flex-col items-center justify-center p-4 py-8 pb-28 sm:pb-24 overflow-auto">
+                <div id="imageWrapper" class="overflow-visible flex items-center justify-center max-w-full">
                     <img id="mainImageElement"
                          src="{{ $streamUrl }}"
                          alt="{{ $resource->title }}"
@@ -289,8 +325,8 @@
             </div>
 
         @elseif($isOffice)
-            <!-- Office Document Reader: Dual View (Cloud Preview + Summary) -->
-            <div class="w-full h-full max-w-5xl p-3 sm:p-6 flex flex-col my-auto pb-20 lg:pb-6">
+            <!-- Office Document Reader: Responsive Container without Vertical Clipping -->
+            <div class="w-full max-w-5xl p-3 sm:p-6 py-6 pb-28 sm:pb-24 flex flex-col space-y-6">
                 <!-- Preview / Info Card -->
                 <div class="w-full bg-vault-card rounded-2xl border border-vault-border p-5 sm:p-8 space-y-6 shadow-2xl">
                     <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
@@ -321,21 +357,28 @@
                         </div>
                     </div>
 
-                    <!-- Online Viewer Embed Container (Google Docs Viewer Fallback) -->
-                    <div class="w-full h-[60vh] rounded-xl overflow-hidden border border-vault-border bg-zinc-900 relative">
+                    <!-- Online Viewer Embed Container (Google Docs Viewer) -->
+                    <div class="w-full h-[65vh] sm:h-[75vh] rounded-xl overflow-hidden border border-vault-border bg-zinc-900 relative">
                         <iframe src="https://docs.google.com/viewer?url={{ urlencode($streamUrl) }}&embedded=true"
                                 class="w-full h-full border-0"
                                 onload="document.getElementById('loadingIndicator').classList.add('hidden');"
                                 onerror="this.style.display='none';">
                         </iframe>
-                        <div class="absolute inset-x-0 bottom-0 p-3 bg-zinc-900/90 backdrop-blur-sm border-t border-vault-border flex items-center justify-between text-xs">
-                            <span class="text-zinc-400 text-[11px] truncate">Document preview provided via cloud renderer</span>
-                            @if($canDownload)
-                                <a href="{{ route('student.resources.download', $resource) }}"
-                                   class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 flex-shrink-0">
-                                    <i class="fas fa-download text-[10px]"></i> Download {{ strtoupper($ext) }}
+                        <div class="absolute inset-x-0 bottom-0 p-3 bg-zinc-900/95 backdrop-blur-sm border-t border-vault-border flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <span class="text-zinc-400 text-[11px] truncate">Document preview rendered via Google Cloud</span>
+                            <div class="flex items-center gap-2">
+                                <a href="https://docs.google.com/viewer?url={{ urlencode($streamUrl) }}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="px-2.5 py-1 glass-btn text-xs font-semibold rounded-lg flex items-center gap-1">
+                                    <i class="fas fa-external-link-alt text-[10px]"></i> Open in New Tab
                                 </a>
-                            @endif
+                                @if($canDownload)
+                                    <a href="{{ route('student.resources.download', $resource) }}"
+                                       class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 flex-shrink-0">
+                                        <i class="fas fa-download text-[10px]"></i> Download
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -344,19 +387,21 @@
 
         @elseif($isText)
             <!-- Plain Text / Code File Viewer -->
-            <div class="w-full max-w-4xl p-4 sm:p-6 my-auto pb-20 lg:pb-6">
+            <div class="w-full max-w-4xl p-4 sm:p-6 py-6 pb-28 sm:pb-24 flex flex-col space-y-4">
                 <div class="bg-vault-card rounded-2xl border border-vault-border p-4 sm:p-6 shadow-2xl space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b border-vault-border">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
                             <i class="fas fa-code text-blue-400"></i>
-                            <span class="font-mono text-xs font-bold text-white">{{ $resource->file_name }}</span>
+                            <span class="font-mono text-xs font-bold text-white truncate">{{ $resource->file_name }}</span>
                         </div>
-                        <button onclick="copyTextContent()" class="px-2.5 py-1 rounded-lg glass-btn text-[11px] flex items-center gap-1" id="copyBtn">
-                            <i class="fas fa-copy"></i>
-                            <span>Copy</span>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="copyTextContent()" class="px-2.5 py-1 rounded-lg glass-btn text-[11px] flex items-center gap-1" id="copyBtn">
+                                <i class="fas fa-copy"></i>
+                                <span>Copy</span>
+                            </button>
+                        </div>
                     </div>
-                    <pre id="textContentArea" class="font-code text-xs text-zinc-300 leading-relaxed overflow-x-auto max-h-[70vh] p-4 bg-zinc-950 rounded-xl border border-zinc-800 whitespace-pre-wrap"></pre>
+                    <pre id="textContentArea" class="font-code text-xs text-zinc-300 leading-relaxed p-4 bg-zinc-950 rounded-xl border border-zinc-800 whitespace-pre-wrap select-text"></pre>
                 </div>
             </div>
             <script>
@@ -378,11 +423,18 @@
                     btn.innerHTML = '<i class="fas fa-check text-emerald-400"></i> Copied!';
                     setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
                 }
+
+                let currentFontSize = 12;
+                function changeFontSize(delta) {
+                    currentFontSize = Math.max(9, Math.min(22, currentFontSize + delta));
+                    const el = document.getElementById('textContentArea');
+                    if (el) el.style.fontSize = currentFontSize + 'px';
+                }
             </script>
 
         @else
             <!-- Generic File View -->
-            <div class="my-auto max-w-md p-8 text-center bg-vault-card rounded-3xl border border-vault-border space-y-5 shadow-2xl">
+            <div class="max-w-md p-8 my-auto text-center bg-vault-card rounded-3xl border border-vault-border space-y-5 shadow-2xl">
                 <div class="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl mx-auto border border-blue-500/20">
                     <i class="fas fa-file-lines"></i>
                 </div>
@@ -402,51 +454,72 @@
 
     </main>
 
+    <!-- ========== FLOATING QUICK-SCROLL DOCK (Available across all document types) ========== -->
+    <div class="fixed right-3.5 bottom-16 sm:bottom-20 z-40 flex flex-col gap-2">
+        <button id="quickScrollUpBtn"
+                class="w-10 h-10 rounded-full bg-vault-card/90 backdrop-blur-md border border-vault-border text-zinc-300 hover:text-white hover:border-blue-500 flex items-center justify-center shadow-2xl transition active:scale-95"
+                title="Scroll Up (Tap: 1 Page / Double Tap: Top)">
+            <i class="fas fa-chevron-up text-xs"></i>
+        </button>
+        <button id="quickScrollDownBtn"
+                class="w-10 h-10 rounded-full bg-vault-card/90 backdrop-blur-md border border-vault-border text-zinc-300 hover:text-white hover:border-blue-500 flex items-center justify-center shadow-2xl transition active:scale-95"
+                title="Scroll Down (Tap: 1 Page / Double Tap: Bottom)">
+            <i class="fas fa-chevron-down text-xs"></i>
+        </button>
+    </div>
+
     <!-- ========== UNIVERSAL MOBILE BOTTOM NAVIGATION DOCK (< 1024px) ========== -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 h-14 bg-vault-panel/95 backdrop-blur-md border-t border-vault-border flex items-center justify-between px-3 z-40 flex-shrink-0 font-mono text-xs shadow-2xl">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 h-14 bg-vault-panel/95 backdrop-blur-md border-t border-vault-border flex items-center justify-between px-2.5 z-40 flex-shrink-0 font-mono text-xs shadow-2xl">
         @if($isPdf)
             <!-- PDF Mobile Controls -->
-            <button id="mobilePrevBtn" class="p-2 px-3 rounded-xl glass-btn font-bold flex items-center gap-1" title="Previous Page">
+            <button id="mobilePrevBtn" class="p-2 px-2.5 rounded-xl glass-btn font-bold flex items-center gap-1 active:scale-95" title="Previous Page">
                 <i class="fas fa-chevron-left text-[11px]"></i>
-                <span class="text-[11px]">Prev</span>
+                <span class="text-[11px] hidden xs:inline">Prev</span>
             </button>
 
-            <!-- Page indicator with touch jump -->
-            <div class="flex items-center gap-1 bg-zinc-900/90 px-3 py-1.5 rounded-xl border border-vault-border text-xs">
-                <span class="text-zinc-400 text-[10px]">Page</span>
-                <span id="mobilePageNum" class="font-bold text-white">1</span>
+            <!-- Direct Jump Page Indicator -->
+            <div class="flex items-center gap-1 bg-zinc-900/90 px-2.5 py-1.5 rounded-xl border border-vault-border text-xs">
+                <span class="text-zinc-400 text-[10px]">P.</span>
+                <input type="number" id="mobilePageInput" min="1" value="1"
+                       class="w-9 text-center py-0 text-xs font-bold bg-zinc-950 border border-vault-border rounded text-white focus:outline-none focus:border-blue-500">
                 <span class="text-zinc-500">/</span>
-                <span id="mobilePageTotal" class="text-zinc-400">--</span>
+                <span id="mobilePageTotal" class="text-zinc-400 font-bold">--</span>
             </div>
 
-            <!-- Quick Zoom / Fit Toggle -->
-            <button onclick="fitToWidth()" class="p-2 px-2.5 rounded-xl glass-btn text-[11px] font-sans font-semibold" title="Fit to Screen Width">
+            <!-- View Mode Switcher on Mobile (Scroll vs Page) -->
+            <button id="mobileModeToggleBtn" class="p-2 px-2.5 rounded-xl glass-btn text-[11px] font-sans font-semibold flex items-center gap-1 active:scale-95" title="Toggle Scroll / Single Page">
+                <i id="mobileModeIcon" class="fas fa-scroll text-[10px] text-blue-400"></i>
+                <span id="mobileModeLabel" class="text-[10px]">Scroll</span>
+            </button>
+
+            <!-- Fit Width Toggle -->
+            <button onclick="fitToWidth()" class="p-2 px-2 rounded-xl glass-btn text-[11px] font-sans font-semibold active:scale-95" title="Fit to Screen Width">
                 Fit
             </button>
 
-            <button id="mobileNextBtn" class="p-2 px-3 rounded-xl glass-btn font-bold flex items-center gap-1" title="Next Page">
-                <span class="text-[11px]">Next</span>
+            <button id="mobileNextBtn" class="p-2 px-2.5 rounded-xl glass-btn font-bold flex items-center gap-1 active:scale-95" title="Next Page">
+                <span class="text-[11px] hidden xs:inline">Next</span>
                 <i class="fas fa-chevron-right text-[11px]"></i>
             </button>
 
         @elseif($isImage)
             <!-- Image Mobile Controls -->
-            <button onclick="zoomImage(-0.25)" class="p-2 px-3 rounded-xl glass-btn font-bold">
+            <button onclick="zoomImage(-0.25)" class="p-2 px-3 rounded-xl glass-btn font-bold active:scale-95">
                 <i class="fas fa-minus"></i>
             </button>
-            <button onclick="resetImageZoom()" class="p-2 px-3 rounded-xl glass-btn font-bold text-[11px]">
+            <button onclick="resetImageZoom()" class="p-2 px-3 rounded-xl glass-btn font-bold text-[11px] active:scale-95">
                 Reset
             </button>
-            <button onclick="rotateImage()" class="p-2 px-3 rounded-xl glass-btn font-bold">
+            <button onclick="rotateImage()" class="p-2 px-3 rounded-xl glass-btn font-bold active:scale-95">
                 <i class="fas fa-rotate-right"></i>
             </button>
-            <button onclick="zoomImage(0.25)" class="p-2 px-3 rounded-xl glass-btn font-bold">
+            <button onclick="zoomImage(0.25)" class="p-2 px-3 rounded-xl glass-btn font-bold active:scale-95">
                 <i class="fas fa-plus"></i>
             </button>
 
         @else
             <!-- Other Documents Quick Bar -->
-            <span class="text-zinc-400 text-xs truncate">{{ $resource->file_name }}</span>
+            <span class="text-zinc-400 text-xs truncate max-w-[180px]">{{ $resource->file_name }}</span>
             @if($canDownload)
                 <a href="{{ route('student.resources.download', $resource) }}"
                    class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs flex items-center gap-1">
@@ -456,7 +529,7 @@
         @endif
     </nav>
 
-    <!-- ========== SCRIPTS ========== -->
+    <!-- ========== JAVASCRIPT CONTROLLERS ========== -->
     @if($isPdf)
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -466,15 +539,21 @@
         let currentScale = 1.0;
         let currentRotation = 0;
         let currentPageNum = 1;
-        let viewMode = 'scroll';
+        let viewMode = 'scroll'; // 'scroll' or 'single'
         let currentEngine = 'interactive';
-        const renderedPages = new Set();
-        const pageViewports = new Map();
+        let basePageWidth = 595;
+        let basePageHeight = 842;
+        let isProgrammaticScroll = false;
+        let scrollTimeout = null;
 
+        const renderedPages = new Set();
+        const renderingPages = new Set();
         const container = document.getElementById('pdfPagesContainer');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const pageNumInput = document.getElementById('pageNumberInput');
+        const mobilePageInput = document.getElementById('mobilePageInput');
         const pageCountDisplay = document.getElementById('pageCountDisplay');
+        const mobilePageTotal = document.getElementById('mobilePageTotal');
         const zoomLevelDisplay = document.getElementById('zoomLevelDisplay');
         const viewerContainer = document.getElementById('viewerContainer');
 
@@ -487,59 +566,74 @@
 
         loadingTask.promise.then(pdf => {
             pdfDoc = pdf;
-            pageCountDisplay.textContent = pdf.numPages;
-            if (document.getElementById('mobilePageTotal')) {
-                document.getElementById('mobilePageTotal').textContent = pdf.numPages;
-            }
-            loadingIndicator.classList.add('hidden');
+            if (pageCountDisplay) pageCountDisplay.textContent = pdf.numPages;
+            if (mobilePageTotal) mobilePageTotal.textContent = pdf.numPages;
+            if (pageNumInput) pageNumInput.max = pdf.numPages;
+            if (mobilePageInput) mobilePageInput.max = pdf.numPages;
 
-            // Auto fit to container width to guarantee natural aspect ratio
+            // Inspect page 1 for dimensions, then auto-fit and render
+            return pdf.getPage(1);
+        }).then(firstPage => {
+            const vp = firstPage.getViewport({ scale: 1.0, rotation: currentRotation });
+            basePageWidth = vp.width;
+            basePageHeight = vp.height;
+
+            loadingIndicator.classList.add('hidden');
             fitToWidth();
         }).catch(err => {
             console.error('PDF.js loading failed, switching to native browser viewer:', err);
             switchToNativeEngine();
         });
 
+        /**
+         * Initialize page placeholders with exact aspect-ratio to guarantee
+         * accurate vertical scrolling without 0px collapse or layout shift.
+         */
         function initPagePlaceholders() {
             if (!pdfDoc) return;
             container.innerHTML = '';
             renderedPages.clear();
+            renderingPages.clear();
 
-            pdfDoc.getPage(1).then(firstPage => {
-                const unscaledViewport = firstPage.getViewport({ scale: 1.0, rotation: currentRotation });
-                const baseWidth = unscaledViewport.width;
-                const baseHeight = unscaledViewport.height;
+            const targetWidth = Math.floor(basePageWidth * currentScale);
 
-                for (let num = 1; num <= pdfDoc.numPages; num++) {
-                    const pageWrapper = document.createElement('div');
-                    pageWrapper.className = 'pdf-page-wrapper';
-                    pageWrapper.id = `page-wrapper-${num}`;
-                    pageWrapper.dataset.pageNum = num;
+            for (let num = 1; num <= pdfDoc.numPages; num++) {
+                const pageWrapper = document.createElement('div');
+                pageWrapper.className = 'pdf-page-wrapper';
+                pageWrapper.id = `page-wrapper-${num}`;
+                pageWrapper.dataset.pageNum = num;
 
-                    const width = Math.floor(baseWidth * currentScale);
-                    const height = Math.floor(baseHeight * currentScale);
+                pageWrapper.style.width = targetWidth + 'px';
+                pageWrapper.style.maxWidth = '100%';
+                pageWrapper.style.aspectRatio = `${basePageWidth} / ${basePageHeight}`;
 
-                    pageWrapper.style.width = width + 'px';
-                    pageWrapper.style.maxWidth = '100%';
-                    pageWrapper.style.height = 'auto';
+                // Smooth skeleton placeholder
+                pageWrapper.innerHTML = `
+                    <div class="pdf-skeleton flex flex-col items-center justify-center w-full h-full text-zinc-500 font-mono text-xs select-none">
+                        <i class="fas fa-file-pdf text-2xl mb-2 text-zinc-600 animate-pulse"></i>
+                        <span>Page ${num}</span>
+                    </div>
+                `;
 
-                    if (viewMode === 'single' && num !== currentPageNum) {
-                        pageWrapper.style.display = 'none';
-                    }
-
-                    container.appendChild(pageWrapper);
+                if (viewMode === 'single' && num !== currentPageNum) {
+                    pageWrapper.style.display = 'none';
                 }
 
-                if (zoomLevelDisplay) {
-                    zoomLevelDisplay.textContent = Math.round(currentScale * 100) + '%';
-                }
+                container.appendChild(pageWrapper);
+            }
 
-                if (viewMode === 'scroll') {
-                    setupIntersectionObserver();
-                } else {
-                    renderPageCanvas(currentPageNum);
-                }
-            });
+            if (zoomLevelDisplay) {
+                zoomLevelDisplay.textContent = Math.round(currentScale * 100) + '%';
+            }
+
+            if (viewMode === 'scroll') {
+                setupIntersectionObserver();
+                // Preload current page and neighbors
+                renderPageCanvas(currentPageNum);
+                if (currentPageNum < pdfDoc.numPages) renderPageCanvas(currentPageNum + 1);
+            } else {
+                renderPageCanvas(currentPageNum);
+            }
         }
 
         let observer = null;
@@ -551,13 +645,16 @@
                     if (entry.isIntersecting) {
                         const pageNum = parseInt(entry.target.dataset.pageNum);
                         renderPageCanvas(pageNum);
-                        updateCurrentPageDisplay(pageNum);
+                        // Also pre-render next page for seamless scrolling
+                        if (pageNum < pdfDoc.numPages) {
+                            renderPageCanvas(pageNum + 1);
+                        }
                     }
                 });
             }, {
                 root: viewerContainer,
-                rootMargin: '250px 0px',
-                threshold: 0.05
+                rootMargin: '400px 0px',
+                threshold: 0.01
             });
 
             document.querySelectorAll('.pdf-page-wrapper').forEach(wrapper => {
@@ -565,34 +662,29 @@
             });
         }
 
+        /**
+         * Render canvas for a given page.
+         */
         function renderPageCanvas(pageNum) {
-            if (!pdfDoc || renderedPages.has(pageNum)) return;
+            if (!pdfDoc || renderedPages.has(pageNum) || renderingPages.has(pageNum)) return;
 
             const wrapper = document.getElementById(`page-wrapper-${pageNum}`);
             if (!wrapper) return;
 
-            renderedPages.add(pageNum);
+            renderingPages.add(pageNum);
 
             pdfDoc.getPage(pageNum).then(page => {
                 const viewport = page.getViewport({ scale: currentScale, rotation: currentRotation });
-                pageViewports.set(pageNum, viewport);
+                const outputScale = window.devicePixelRatio || 1;
 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'pdf-page-canvas';
                 canvas.id = `canvas-page-${pageNum}`;
 
-                const outputScale = window.devicePixelRatio || 1;
                 canvas.width = Math.floor(viewport.width * outputScale);
                 canvas.height = Math.floor(viewport.height * outputScale);
                 canvas.style.width = '100%';
-                canvas.style.height = 'auto';
-
-                wrapper.style.width = Math.floor(viewport.width) + 'px';
-                wrapper.style.maxWidth = '100%';
-                wrapper.style.height = 'auto';
-
-                wrapper.innerHTML = '';
-                wrapper.appendChild(canvas);
+                canvas.style.height = '100%';
 
                 const ctx = canvas.getContext('2d');
                 const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
@@ -603,46 +695,142 @@
                     viewport: viewport,
                 };
 
-                page.render(renderContext);
+                return page.render(renderContext).promise.then(() => {
+                    wrapper.innerHTML = '';
+                    wrapper.appendChild(canvas);
+                    renderedPages.add(pageNum);
+                    renderingPages.delete(pageNum);
+                });
             }).catch(err => {
-                renderedPages.delete(pageNum);
+                renderingPages.delete(pageNum);
                 console.error(`Page ${pageNum} render error:`, err);
             });
         }
 
-        function updateCurrentPageDisplay(num) {
+        /**
+         * Update page number in inputs & displays without jitter.
+         */
+        function updatePageInputs(num) {
             currentPageNum = num;
-            if (pageNumInput) pageNumInput.value = num;
-            if (document.getElementById('mobilePageNum')) {
-                document.getElementById('mobilePageNum').textContent = num;
+            if (pageNumInput && document.activeElement !== pageNumInput) {
+                pageNumInput.value = num;
+            }
+            if (mobilePageInput && document.activeElement !== mobilePageInput) {
+                mobilePageInput.value = num;
             }
         }
 
-        function fitToWidth() {
-            if (!pdfDoc) return;
-            pdfDoc.getPage(1).then(page => {
-                const unscaled = page.getViewport({ scale: 1.0, rotation: currentRotation });
-                const containerWidth = (viewerContainer && viewerContainer.clientWidth > 0)
-                    ? viewerContainer.clientWidth
-                    : window.innerWidth;
-                const padding = window.innerWidth < 768 ? 20 : 64;
-                const availableWidth = Math.max(260, containerWidth - padding);
-                currentScale = Math.max(0.3, Math.min(3.0, availableWidth / unscaled.width));
-                initPagePlaceholders();
+        /**
+         * Accurate active page detection while user scrolls naturally.
+         */
+        viewerContainer.addEventListener('scroll', () => {
+            if (isProgrammaticScroll || viewMode !== 'scroll' || !pdfDoc) return;
+
+            if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+            scrollTimeout = requestAnimationFrame(() => {
+                const containerRect = viewerContainer.getBoundingClientRect();
+                const targetY = containerRect.top + Math.min(180, containerRect.height / 3);
+
+                const wrappers = container.querySelectorAll('.pdf-page-wrapper');
+                let bestPage = currentPageNum;
+                let minDistance = Infinity;
+
+                for (const wrapper of wrappers) {
+                    const rect = wrapper.getBoundingClientRect();
+                    if (rect.top <= targetY && rect.bottom >= targetY) {
+                        bestPage = parseInt(wrapper.dataset.pageNum);
+                        break;
+                    }
+                    const dist = Math.abs(rect.top - targetY);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        bestPage = parseInt(wrapper.dataset.pageNum);
+                    }
+                }
+
+                if (bestPage !== currentPageNum) {
+                    updatePageInputs(bestPage);
+                }
             });
+        }, { passive: true });
+
+        /**
+         * Navigate to a target page with smooth scrolling.
+         */
+        function goToPage(targetNum, smooth = true) {
+            if (!pdfDoc) return;
+            targetNum = Math.max(1, Math.min(pdfDoc.numPages, targetNum));
+            updatePageInputs(targetNum);
+
+            if (viewMode === 'scroll') {
+                const targetWrapper = document.getElementById(`page-wrapper-${targetNum}`);
+                if (targetWrapper && viewerContainer) {
+                    renderPageCanvas(targetNum);
+                    if (targetNum < pdfDoc.numPages) renderPageCanvas(targetNum + 1);
+
+                    isProgrammaticScroll = true;
+                    const containerRect = viewerContainer.getBoundingClientRect();
+                    const targetRect = targetWrapper.getBoundingClientRect();
+                    const offset = targetRect.top - containerRect.top;
+                    const targetTop = viewerContainer.scrollTop + offset - 12;
+
+                    viewerContainer.scrollTo({
+                        top: Math.max(0, targetTop),
+                        behavior: smooth ? 'smooth' : 'auto'
+                    });
+
+                    setTimeout(() => {
+                        isProgrammaticScroll = false;
+                    }, 500);
+                }
+            } else {
+                // Single page flip mode
+                document.querySelectorAll('.pdf-page-wrapper').forEach(wrapper => {
+                    const num = parseInt(wrapper.dataset.pageNum);
+                    if (num === targetNum) {
+                        wrapper.style.display = 'flex';
+                        renderPageCanvas(num);
+                    } else {
+                        wrapper.style.display = 'none';
+                    }
+                });
+                viewerContainer.scrollTo({ top: 0, behavior: 'auto' });
+            }
         }
 
+        /**
+         * Fit to width: adapts dynamically to phone screen or desktop monitor.
+         */
+        function fitToWidth() {
+            if (!pdfDoc) return;
+            const containerWidth = (viewerContainer && viewerContainer.clientWidth > 0)
+                ? viewerContainer.clientWidth
+                : window.innerWidth;
+            const padding = window.innerWidth < 768 ? 20 : 64;
+            const availableWidth = Math.max(260, containerWidth - padding);
+            currentScale = Math.max(0.3, Math.min(3.0, availableWidth / basePageWidth));
+
+            const savedPage = currentPageNum;
+            initPagePlaceholders();
+            setTimeout(() => goToPage(savedPage, false), 50);
+        }
+
+        // Zoom & Rotate Handlers
         document.getElementById('zoomInBtn')?.addEventListener('click', () => {
             if (currentScale < 3.0) {
                 currentScale = Math.min(3.0, currentScale + 0.25);
+                const p = currentPageNum;
                 initPagePlaceholders();
+                setTimeout(() => goToPage(p, false), 50);
             }
         });
 
         document.getElementById('zoomOutBtn')?.addEventListener('click', () => {
             if (currentScale > 0.3) {
                 currentScale = Math.max(0.3, currentScale - 0.25);
+                const p = currentPageNum;
                 initPagePlaceholders();
+                setTimeout(() => goToPage(p, false), 50);
             }
         });
 
@@ -650,57 +838,67 @@
 
         document.getElementById('rotateBtn')?.addEventListener('click', () => {
             currentRotation = (currentRotation + 90) % 360;
-            initPagePlaceholders();
+            // Swap base dimensions on 90/270
+            const temp = basePageWidth;
+            basePageWidth = basePageHeight;
+            basePageHeight = temp;
+
+            const p = currentPageNum;
+            fitToWidth();
         });
 
-        function goToPage(targetNum) {
-            if (!pdfDoc) return;
-            targetNum = Math.max(1, Math.min(pdfDoc.numPages, targetNum));
-            updateCurrentPageDisplay(targetNum);
-
-            if (viewMode === 'scroll') {
-                const targetWrapper = document.getElementById(`page-wrapper-${targetNum}`);
-                if (targetWrapper) targetWrapper.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                document.querySelectorAll('.pdf-page-wrapper').forEach(wrapper => {
-                    const num = parseInt(wrapper.dataset.pageNum);
-                    if (num === targetNum) {
-                        wrapper.style.display = 'block';
-                        renderPageCanvas(num);
-                    } else {
-                        wrapper.style.display = 'none';
-                    }
-                });
-            }
-        }
-
+        // Navigation Buttons
         document.getElementById('prevPageBtn')?.addEventListener('click', () => goToPage(currentPageNum - 1));
         document.getElementById('nextPageBtn')?.addEventListener('click', () => goToPage(currentPageNum + 1));
         document.getElementById('mobilePrevBtn')?.addEventListener('click', () => goToPage(currentPageNum - 1));
         document.getElementById('mobileNextBtn')?.addEventListener('click', () => goToPage(currentPageNum + 1));
 
-        pageNumInput?.addEventListener('change', (e) => {
-            const val = parseInt(e.target.value);
+        // Direct Page Number Inputs
+        function handlePageInputChange(inputEl) {
+            const val = parseInt(inputEl.value);
             if (!isNaN(val)) goToPage(val);
+        }
+
+        pageNumInput?.addEventListener('change', () => handlePageInputChange(pageNumInput));
+        mobilePageInput?.addEventListener('change', () => handlePageInputChange(mobilePageInput));
+        mobilePageInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handlePageInputChange(mobilePageInput);
+                mobilePageInput.blur();
+            }
         });
 
+        // Mode Switching
         const scrollBtn = document.getElementById('scrollModeBtn');
         const singleBtn = document.getElementById('singlePageModeBtn');
+        const mobileModeToggleBtn = document.getElementById('mobileModeToggleBtn');
+        const mobileModeIcon = document.getElementById('mobileModeIcon');
+        const mobileModeLabel = document.getElementById('mobileModeLabel');
 
-        scrollBtn?.addEventListener('click', () => {
-            viewMode = 'scroll';
-            scrollBtn.classList.add('active');
-            singleBtn.classList.remove('active');
+        function setViewMode(mode) {
+            viewMode = mode;
+            if (mode === 'scroll') {
+                scrollBtn?.classList.add('active');
+                singleBtn?.classList.remove('active');
+                if (mobileModeIcon) mobileModeIcon.className = 'fas fa-scroll text-[10px] text-blue-400';
+                if (mobileModeLabel) mobileModeLabel.textContent = 'Scroll';
+            } else {
+                singleBtn?.classList.add('active');
+                scrollBtn?.classList.remove('active');
+                if (mobileModeIcon) mobileModeIcon.className = 'fas fa-file text-[10px] text-emerald-400';
+                if (mobileModeLabel) mobileModeLabel.textContent = 'Page';
+            }
             initPagePlaceholders();
+            setTimeout(() => goToPage(currentPageNum, false), 50);
+        }
+
+        scrollBtn?.addEventListener('click', () => setViewMode('scroll'));
+        singleBtn?.addEventListener('click', () => setViewMode('single'));
+        mobileModeToggleBtn?.addEventListener('click', () => {
+            setViewMode(viewMode === 'scroll' ? 'single' : 'scroll');
         });
 
-        singleBtn?.addEventListener('click', () => {
-            viewMode = 'single';
-            singleBtn.classList.add('active');
-            scrollBtn.classList.remove('active');
-            initPagePlaceholders();
-        });
-
+        // Engine Switcher
         const engineToggleBtn = document.getElementById('engineToggleBtn');
         const engineLabel = document.getElementById('engineLabel');
         const interactiveWrapper = document.getElementById('interactiveViewerWrapper');
@@ -732,6 +930,26 @@
                 switchToInteractiveEngine();
             }
         });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+            if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                e.preventDefault();
+                goToPage(currentPageNum + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                goToPage(currentPageNum - 1);
+            } else if (e.key === '+' || e.key === '=') {
+                document.getElementById('zoomInBtn')?.click();
+            } else if (e.key === '-') {
+                document.getElementById('zoomOutBtn')?.click();
+            } else if (e.key === 'r' || e.key === 'R') {
+                document.getElementById('rotateBtn')?.click();
+            } else if (e.key === 'f' || e.key === 'F') {
+                fitToWidth();
+            }
+        });
     </script>
     @endif
 
@@ -749,7 +967,7 @@
         }
 
         function zoomImage(delta) {
-            imgScale = Math.max(0.5, Math.min(3.0, imgScale + delta));
+            imgScale = Math.max(0.5, Math.min(3.5, imgScale + delta));
             applyImgTransform();
         }
 
@@ -766,8 +984,42 @@
     </script>
     @endif
 
+    <!-- Universal Floating Quick-Scroll Buttons -->
     <script>
-        // Universal Fullscreen Toggle
+        const vContainer = document.getElementById('viewerContainer');
+        const upBtn = document.getElementById('quickScrollUpBtn');
+        const downBtn = document.getElementById('quickScrollDownBtn');
+
+        let lastUpClick = 0;
+        let lastDownClick = 0;
+
+        upBtn?.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastUpClick < 350) {
+                // Double click: Jump to top
+                vContainer.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Single click: Scroll up by 85% of viewport height
+                const step = vContainer.clientHeight * 0.85;
+                vContainer.scrollBy({ top: -step, behavior: 'smooth' });
+            }
+            lastUpClick = now;
+        });
+
+        downBtn?.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastDownClick < 350) {
+                // Double click: Jump to bottom
+                vContainer.scrollTo({ top: vContainer.scrollHeight, behavior: 'smooth' });
+            } else {
+                // Single click: Scroll down by 85% of viewport height
+                const step = vContainer.clientHeight * 0.85;
+                vContainer.scrollBy({ top: step, behavior: 'smooth' });
+            }
+            lastDownClick = now;
+        });
+
+        // Fullscreen Toggle
         document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
