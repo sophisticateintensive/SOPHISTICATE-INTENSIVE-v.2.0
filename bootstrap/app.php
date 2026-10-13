@@ -22,5 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            return back()->withInput()->withErrors([
+                'file' => 'The uploaded file exceeds the server size limit. Maximum allowed size is 100MB.'
+            ]);
+        });
     })->create();

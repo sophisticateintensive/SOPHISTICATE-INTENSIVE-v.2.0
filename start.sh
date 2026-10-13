@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
+# Load custom PHP configurations (100MB upload limits) without overriding Nix system extensions
+export PHP_INI_SCAN_DIR=":$PWD/.php.d"
+
 echo "=== Sophisticate Intensive Classes — Railway Startup ==="
+
 
 # ──────────────────────────────────────────────────────────────
 # 1. Print diagnostics (masked passwords)
@@ -101,7 +105,21 @@ php artisan route:cache  --no-ansi
 php artisan view:cache   --no-ansi
 
 # ──────────────────────────────────────────────────────────────
-# 7. Start server with increased upload limits (100M)
+# 7. Start server with increased upload limits (100MB)
 # ──────────────────────────────────────────────────────────────
-echo "Starting server on 0.0.0.0:${PORT:-8080}..."
-php -d upload_max_filesize=100M -d post_max_size=100M -d memory_limit=512M -d max_execution_time=300 artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+echo "Starting server on 0.0.0.0:${PORT:-8080} (upload limit: 100MB)..."
+ROUTER="../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"
+if [ -f "../server.php" ]; then
+    ROUTER="../server.php"
+fi
+
+cd public
+exec php \
+    -d upload_max_filesize=100M \
+    -d post_max_size=100M \
+    -d memory_limit=512M \
+    -d max_execution_time=300 \
+    -d max_input_time=300 \
+    -S 0.0.0.0:"${PORT:-8080}" \
+    "$ROUTER"
+
