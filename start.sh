@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-# Load custom PHP configurations (100MB upload limits) without overriding Nix system extensions
-export PHP_INI_SCAN_DIR=":$PWD/.php.d"
-
 echo "=== Sophisticate Intensive Classes — Railway Startup ==="
+
 
 
 # ──────────────────────────────────────────────────────────────
@@ -91,10 +89,15 @@ php artisan storage:link --force --no-ansi 2>/dev/null || true
 # 6. Migrate & seed
 # ──────────────────────────────────────────────────────────────
 echo "Running migrations..."
-php artisan migrate --force --no-ansi
+php artisan migrate --force --no-ansi || {
+    echo "FATAL: Database migrations failed! Check logs above."
+    exit 1
+}
 
 echo "Seeding admin account..."
-php artisan db:seed --class=AdminSeeder --force --no-ansi
+php artisan db:seed --class=AdminSeeder --force --no-ansi || {
+    echo "WARNING: AdminSeeder encountered an issue, proceeding..."
+}
 
 # ──────────────────────────────────────────────────────────────
 # 6. Cache for production
