@@ -45,7 +45,7 @@
                 <!-- Live Computed Balance Card -->
                 <div class="bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center min-w-[200px] shadow-lg font-mono">
                     <span class="text-[10px] text-blue-200 uppercase tracking-wider block">Net Balance Due</span>
-                    <p class="text-3xl font-black text-white mt-1" x-text="'$' + formatMoney(computedBalance())"></p>
+                    <p class="text-3xl font-black text-white mt-1" x-text="'MWK' + formatMoney(computedBalance())"></p>
                     <span class="text-xs font-bold px-2.5 py-0.5 rounded-full inline-block mt-1"
                           :class="computedBalance() <= 0 ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'"
                           x-text="computedBalance() <= 0 ? 'FULLY SETTLED' : 'OUTSTANDING BALANCE'"></span>
@@ -160,9 +160,9 @@
 
                         <!-- Amount Due -->
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Amount Invoiced ($) *</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Amount Invoiced (MWK) *</label>
                             <div class="relative">
-                                <span class="absolute left-4 top-3 text-sm text-[var(--text-muted)] font-mono font-bold">$</span>
+                                <span class="absolute left-4 top-3 text-sm text-[var(--text-muted)] font-mono font-bold">MWK</span>
                                 <input type="number" step="0.01" min="0" name="amount" required
                                        x-model="amountDue"
                                        placeholder="0.00"
@@ -172,7 +172,7 @@
 
                         <!-- Amount Paid Initially -->
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Initial Deposit / Amount Paid ($)</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">Initial Deposit / Amount Paid (MWK)</label>
                             <div class="relative">
                                 <span class="absolute left-4 top-3 text-sm text-[var(--text-muted)] font-mono font-bold">$</span>
                                 <input type="number" step="0.01" min="0" name="paid"
@@ -186,15 +186,15 @@
                         <div class="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-2 text-xs font-mono">
                             <div class="flex items-center justify-between">
                                 <span class="text-[var(--text-muted)]">Invoiced Total:</span>
-                                <span class="font-bold text-[var(--text-primary)]" x-text="'$' + formatMoney(amountDue)"></span>
+                                <span class="font-bold text-[var(--text-primary)]" x-text="'MWK' + formatMoney(amountDue)"></span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-[var(--text-muted)]">Paid Today:</span>
-                                <span class="font-bold text-emerald-500" x-text="'$' + formatMoney(amountPaid)"></span>
+                                <span class="font-bold text-emerald-500" x-text="'MWK' + formatMoney(amountPaid)"></span>
                             </div>
                             <div class="flex items-center justify-between border-t border-[var(--border-color)] pt-2 font-black">
                                 <span class="text-[var(--text-primary)]">Balance Due:</span>
-                                <span class="text-sm" :class="computedBalance() <= 0 ? 'text-emerald-500' : 'text-amber-500'" x-text="'$' + formatMoney(computedBalance())"></span>
+                                <span class="text-sm" :class="computedBalance() <= 0 ? 'text-emerald-500' : 'text-amber-500'" x-text="'MWK' + formatMoney(computedBalance())"></span>
                             </div>
                         </div>
 
